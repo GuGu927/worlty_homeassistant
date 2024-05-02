@@ -1,0 +1,163 @@
+{
+  "config": {
+    "step": {
+      "discovery_confirm": {
+        "description": "Do you want to set up ({ip_address}:{port})?"
+      },
+      "user": {
+        "description": "Connect to Worlty locally.\n\nYou can get Access Token in Wolrty APP.",
+        "data": {
+          "host": "[%key:common::config_flow::data::host%]",
+          "ip_address": "[%key:common::config_flow::data::ip%]",
+          "port": "[%key:common::config_flow::data::port%]",
+          "access_token": "[%key:common::config_flow::data::access_token%]"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]",
+      "invalid_access_token": "[%key:common::config_flow::error::invalid_access_token%]",
+      "unknown": "[%key:common::config_flow::error::unknown%]",
+      "unreachable": "[%key:common::config_flow::error::timeout_connect%]",
+      "invalid_host": "[%key:common::config_flow::error::invalid_host%]"
+    },
+    "abort": {
+      "already_configured": "[%key:common::config_flow::abort::already_configured_device%]",
+      "already_configured_device": "[%key:common::config_flow::abort::already_configured_device%]",
+      "no_devices_found": "[%key:common::config_flow::abort::no_devices_found%]"
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "binary_sensor": { "name": "Binary {sub_id}" },
+      "battery": { "name": "Battery {sub_id}" },
+      "battery_charging": { "name": "Battery Charging {sub_id}" },
+      "co": { "name": "CO {sub_id}" },
+      "cold": { "name": "Cold {sub_id}" },
+      "connectivity": { "name": "Connectivity {sub_id}" },
+      "door": { "name": "Door {sub_id}" },
+      "error": { "name": "Error {sub_id}" },
+      "filter": { "name": "Filter {sub_id}" },
+      "fire": { "name": "Fire {sub_id}" },
+      "garage_door": { "name": "Garage {sub_id}" },
+      "gas": { "name": "Gas {sub_id}" },
+      "heat": { "name": "Heat {sub_id}" },
+      "light": { "name": "Light {sub_id}" },
+      "lock": { "name": "Lock {sub_id}" },
+      "moisture": { "name": "Moisture {sub_id}" },
+      "motion": { "name": "Motion {sub_id}" },
+      "moving": { "name": "Moving {sub_id}" },
+      "occupancy": { "name": "Occupancy {sub_id}" },
+      "opening": { "name": "Opening {sub_id}" },
+      "plug": { "name": "Plug {sub_id}" },
+      "power": { "name": "Power {sub_id}" },
+      "presence": { "name": "Presence {sub_id}" },
+      "problem": { "name": "Problem {sub_id}" },
+      "running": { "name": "Running {sub_id}" },
+      "safety": { "name": "Safety {sub_id}" },
+      "smoke": { "name": "Smoke {sub_id}" },
+      "sound": { "name": "Sound {sub_id}" },
+      "tamper": { "name": "Tamper {sub_id}" },
+      "update": { "name": "Update {sub_id}" },
+      "vibration": { "name": "Vibration {sub_id}" },
+      "window": { "name": "Window {sub_id}" },
+      "guard": { "name": "Guard {sub_id}" }
+    },
+    "climate": {
+      "ac": {
+        "name": "AC {sub_id}",
+        "state_attributes": {
+          "fan_mode": {
+            "state": {
+              "natural": "Natural",
+              "weak": "Weak",
+              "turbo": "Turbo"
+            }
+          }
+        }
+      },
+      "boiler": {
+        "name": "Boiler {sub_id}"
+      }
+    },
+    "fan": {
+      "fan": { "name": "Fan {sub_id}" },
+      "sysclein": { "name": "Sysclein {sub_id}" },
+      "airone": { "name": "Airone {sub_id}" }
+    },
+    "light": {
+      "light": { "name": "Light {sub_id}" },
+      "dimming": { "name": "Dimming {sub_id}" }
+    },
+    "switch": {
+      "switch": { "name": "Switch {sub_id}" },
+      "outlet": { "name": "Outlet {sub_id}" },
+      "valve": { "name": "Valve {sub_id}" },
+      "open": { "name": "Open {sub_id}" },
+      "lock": { "name": "Lock {sub_id}" },
+      "cook": { "name": "Cook {sub_id}" },
+      "elevator": { "name": "Elevator {sub_id}" },
+      "interphone": { "name": "Interphone {sub_id}" }
+    },
+    "sensor": {
+      "event": { "name": "Event {sub_id}" },
+      "event_uss": { "name": "Event USS {sub_id}" },
+      "sensor": { "name": "Sensor {sub_id}" },
+      "apparent_power": { "name": "Apparent Power {sub_id}" },
+      "aqi": { "name": "Air Quality Index {sub_id}" },
+      "atmospheric_pressure": { "name": "Atmospheric Pressure {sub_id}" },
+      "battery": { "name": "Battery {sub_id}" },
+      "carbon_dioxide": { "name": "Carbon Dioxide {sub_id}" },
+      "carbon_monoxide": { "name": "Carbon Monoxide {sub_id}" },
+      "current": { "name": "Current {sub_id}" },
+      "data_rate": { "name": "Data Rate {sub_id}" },
+      "data_size": { "name": "Data Size {sub_id}" },
+      "date": { "name": "Date {sub_id}" },
+      "distance": { "name": "Distance {sub_id}" },
+      "duration": { "name": "Duration {sub_id}" },
+      "energy": { "name": "Energy {sub_id}" },
+      "enum": { "name": "Enumeration {sub_id}" },
+      "floor": { "name": "Floor {sub_id}" },
+      "frequency": { "name": "Frequency {sub_id}" },
+      "gas": { "name": "Gas {sub_id}" },
+      "heat": { "name": "Heat {sub_id}" },
+      "hotwater": { "name": "Hotwater {sub_id}" },
+      "humidity": { "name": "Humidity {sub_id}" },
+      "illuminance": { "name": "Illuminance {sub_id}" },
+      "irradiance": { "name": "Irradiance {sub_id}" },
+      "moisture": { "name": "Moisture {sub_id}" },
+      "monetary": { "name": "Monetary {sub_id}" },
+      "nitrogen_dioxide": { "name": "Nitrogen Dioxide {sub_id}" },
+      "nitrogen_monoxide": { "name": "Nitrogen Monoxide {sub_id}" },
+      "nitrous_oxide": { "name": "Nitrous Oxide {sub_id}" },
+      "ozone": { "name": "Ozone {sub_id}" },
+      "percentage": { "name": "Percentage {sub_id}" },
+      "pm1": { "name": "PM1 {sub_id}" },
+      "pm10": { "name": "PM10 {sub_id}" },
+      "pm25": { "name": "PM25 {sub_id}" },
+      "power_factor": { "name": "Power Factor {sub_id}" },
+      "power": { "name": "Power {sub_id}" },
+      "precipitation": { "name": "Precipitation {sub_id}" },
+      "precipitation_intensity": { "name": "Precipitation Intensity {sub_id}" },
+      "pressure": { "name": "Pressure {sub_id}" },
+      "reactive_power": { "name": "Reactive Power {sub_id}" },
+      "signal_strength": { "name": "Signal Strength {sub_id}" },
+      "sound_pressure": { "name": "Sound Pressure {sub_id}" },
+      "speed": { "name": "Speed {sub_id}" },
+      "string": { "name": "String {sub_id}" },
+      "sulphur_dioxide": { "name": "Sulphur Dioxide {sub_id}" },
+      "temperature": { "name": "Temperature {sub_id}" },
+      "timestamp": { "name": "Timestamp {sub_id}" },
+      "volatile_organic_compounds": {
+        "name": "Volatile Organic Compounds {sub_id}"
+      },
+      "voltage": { "name": "Voltage {sub_id}" },
+      "volume": { "name": "Volume {sub_id}" },
+      "water": { "name": "Water {sub_id}" },
+      "weather": { "name": "Weather {sub_id}" },
+      "weight": { "name": "Weight {sub_id}" },
+      "wind_speed": { "name": "Wind Speed {sub_id}" },
+      "multisensor": { "name": "Multisensor {sub_id}" }
+    }
+  }
+}

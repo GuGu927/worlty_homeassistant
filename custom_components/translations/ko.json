@@ -1,0 +1,365 @@
+{
+    "config": {
+        "abort": {
+            "already_configured": "이미 등록되어 있습니다",
+            "already_configured_device": "이미 등록되어 있습니다",
+            "no_devices_found": "장치를 찾을 수 없습니다"
+        },
+        "error": {
+            "cannot_connect": "장치 연결에 실패했습니다",
+            "invalid_access_token": "액세스 토큰을 확인해주세요",
+            "invalid_host": "장치주소를 확인해주세요",
+            "unknown": "알수없는 에러",
+            "unreachable": "장치 응답이 없습니다"
+        },
+        "step": {
+            "discovery_confirm": {
+                "description": "장치를 연결하시겠어요? ({ip_address}:{port})"
+            },
+            "user": {
+                "data": {
+                    "access_token": "액세스 토큰",
+                    "host": "호스트",
+                    "ip_address": "IP 주소",
+                    "port": "포트"
+                },
+                "description": "Worlty에 로컬로 연결합니다.\n\nWolrty APP에서 액세스 토큰을 발급받을 수 있어요."
+            }
+        }
+    },
+    "entity": {
+        "binary_sensor": {
+            "battery": {
+                "name": "배터리 {sub_id}"
+            },
+            "battery_charging": {
+                "name": "배터리충전 {sub_id}"
+            },
+            "binary_sensor": {
+                "name": "센서 {sub_id}"
+            },
+            "co": {
+                "name": "일산화탄소 {sub_id}"
+            },
+            "cold": {
+                "name": "추위 {sub_id}"
+            },
+            "connectivity": {
+                "name": "연결 {sub_id}"
+            },
+            "door": {
+                "name": "문 {sub_id}"
+            },
+            "error": {
+                "name": "오류 {sub_id}"
+            },
+            "filter": {
+                "name": "필터 {sub_id}"
+            },
+            "fire": {
+                "name": "화재 {sub_id}"
+            },
+            "garage_door": {
+                "name": "차고 {sub_id}"
+            },
+            "gas": {
+                "name": "가스 {sub_id}"
+            },
+            "guard": {
+                "name": "경비 {sub_id}"
+            },
+            "heat": {
+                "name": "열 {sub_id}"
+            },
+            "light": {
+                "name": "조명 {sub_id}"
+            },
+            "lock": {
+                "name": "잠금 {sub_id}"
+            },
+            "moisture": {
+                "name": "습도 {sub_id}"
+            },
+            "motion": {
+                "name": "동작 {sub_id}"
+            },
+            "moving": {
+                "name": "이동 {sub_id}"
+            },
+            "occupancy": {
+                "name": "점유 {sub_id}"
+            },
+            "opening": {
+                "name": "개방 {sub_id}"
+            },
+            "plug": {
+                "name": "플러그 {sub_id}"
+            },
+            "power": {
+                "name": "전력 {sub_id}"
+            },
+            "presence": {
+                "name": "존재 {sub_id}"
+            },
+            "problem": {
+                "name": "문제 {sub_id}"
+            },
+            "running": {
+                "name": "작동 {sub_id}"
+            },
+            "safety": {
+                "name": "안전 {sub_id}"
+            },
+            "smoke": {
+                "name": "연기 {sub_id}"
+            },
+            "sound": {
+                "name": "소리 {sub_id}"
+            },
+            "tamper": {
+                "name": "손상 {sub_id}"
+            },
+            "update": {
+                "name": "업데이트 {sub_id}"
+            },
+            "vibration": {
+                "name": "진동 {sub_id}"
+            },
+            "window": {
+                "name": "창문 {sub_id}"
+            }
+        },
+        "climate": {
+            "ac": {
+                "name": "에어컨 {sub_id}",
+                "state_attributes": {
+                    "fan_mode": {
+                        "state": {
+                            "natural": "자연",
+                            "turbo": "터보",
+                            "weak": "미세"
+                        }
+                    }
+                }
+            },
+            "boiler": {
+                "name": "보일러 {sub_id}"
+            }
+        },
+        "fan": {
+            "airone": {
+                "name": "에어원 {sub_id}"
+            },
+            "fan": {
+                "name": "환기 {sub_id}"
+            },
+            "sysclein": {
+                "name": "시스클라인 {sub_id}"
+            }
+        },
+        "light": {
+            "dimming": {
+                "name": "디밍 {sub_id}"
+            },
+            "light": {
+                "name": "조명 {sub_id}"
+            }
+        },
+        "sensor": {
+            "apparent_power": {
+                "name": "유효 전력 {sub_id}"
+            },
+            "aqi": {
+                "name": "대기 질 지수 {sub_id}"
+            },
+            "atmospheric_pressure": {
+                "name": "대기압 {sub_id}"
+            },
+            "battery": {
+                "name": "배터리 {sub_id}"
+            },
+            "carbon_dioxide": {
+                "name": "이산화탄소 {sub_id}"
+            },
+            "carbon_monoxide": {
+                "name": "일산화탄소 {sub_id}"
+            },
+            "current": {
+                "name": "전류 {sub_id}"
+            },
+            "data_rate": {
+                "name": "데이터 속도 {sub_id}"
+            },
+            "data_size": {
+                "name": "데이터 크기 {sub_id}"
+            },
+            "date": {
+                "name": "날짜 {sub_id}"
+            },
+            "distance": {
+                "name": "거리 {sub_id}"
+            },
+            "duration": {
+                "name": "기간 {sub_id}"
+            },
+            "energy": {
+                "name": "에너지 {sub_id}"
+            },
+            "enum": {
+                "name": "열거 {sub_id}"
+            },
+            "event": {
+                "name": "이벤트 {sub_id}"
+            },
+            "event_uss": {
+                "name": "이벤트USS {sub_id}"
+            },
+            "floor": {
+                "name": "위치(층) {sub_id}"
+            },
+            "frequency": {
+                "name": "주파수 {sub_id}"
+            },
+            "gas": {
+                "name": "가스 {sub_id}"
+            },
+            "heat": {
+                "name": "난방 {sub_id}"
+            },
+            "hotwater": {
+                "name": "온수 {sub_id}"
+            },
+            "humidity": {
+                "name": "습도 {sub_id}"
+            },
+            "illuminance": {
+                "name": "조도 {sub_id}"
+            },
+            "irradiance": {
+                "name": "광도 {sub_id}"
+            },
+            "moisture": {
+                "name": "습기 {sub_id}"
+            },
+            "monetary": {
+                "name": "통화 {sub_id}"
+            },
+            "multisensor": {
+                "name": "다중 센서 {sub_id}"
+            },
+            "nitrogen_dioxide": {
+                "name": "이산화 질소 {sub_id}"
+            },
+            "nitrogen_monoxide": {
+                "name": "일산화 질소 {sub_id}"
+            },
+            "nitrous_oxide": {
+                "name": "아산화 질소 {sub_id}"
+            },
+            "ozone": {
+                "name": "오존 {sub_id}"
+            },
+            "percentage": {
+                "name": "백분율 {sub_id}"
+            },
+            "pm1": {
+                "name": "PM1 {sub_id}"
+            },
+            "pm10": {
+                "name": "PM10 {sub_id}"
+            },
+            "pm25": {
+                "name": "PM25 {sub_id}"
+            },
+            "power": {
+                "name": "전력 {sub_id}"
+            },
+            "power_factor": {
+                "name": "역률 {sub_id}"
+            },
+            "precipitation": {
+                "name": "강수량 {sub_id}"
+            },
+            "precipitation_intensity": {
+                "name": "강수 강도 {sub_id}"
+            },
+            "pressure": {
+                "name": "압력 {sub_id}"
+            },
+            "reactive_power": {
+                "name": "반응 소비 전력 {sub_id}"
+            },
+            "sensor": {
+                "name": "센서 {sub_id}"
+            },
+            "signal_strength": {
+                "name": "신호 강도 {sub_id}"
+            },
+            "sound_pressure": {
+                "name": "음압 {sub_id}"
+            },
+            "speed": {
+                "name": "속도 {sub_id}"
+            },
+            "string": {
+                "name": "문자열 {sub_id}"
+            },
+            "sulphur_dioxide": {
+                "name": "이산화황 {sub_id}"
+            },
+            "temperature": {
+                "name": "온도 {sub_id}"
+            },
+            "timestamp": {
+                "name": "타임스탬프 {sub_id}"
+            },
+            "volatile_organic_compounds": {
+                "name": "휘발성 유기 화합물 {sub_id}"
+            },
+            "voltage": {
+                "name": "전압 {sub_id}"
+            },
+            "volume": {
+                "name": "부피 {sub_id}"
+            },
+            "water": {
+                "name": "물 {sub_id}"
+            },
+            "weather": {
+                "name": "날씨 {sub_id}"
+            },
+            "weight": {
+                "name": "무게 {sub_id}"
+            },
+            "wind_speed": {
+                "name": "풍속 {sub_id}"
+            }
+        },
+        "switch": {
+            "cook": {
+                "name": "요리 {sub_id}"
+            },
+            "elevator": {
+                "name": "엘리베이터 {sub_id}"
+            },
+            "interphone": {
+                "name": "인터폰 {sub_id}"
+            },
+            "lock": {
+                "name": "잠금 {sub_id}"
+            },
+            "open": {
+                "name": "열기 {sub_id}"
+            },
+            "outlet": {
+                "name": "콘센트 {sub_id}"
+            },
+            "switch": {
+                "name": "스위치 {sub_id}"
+            },
+            "valve": {
+                "name": "밸브 {sub_id}"
+            }
+        }
+    }
+}

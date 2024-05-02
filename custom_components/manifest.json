@@ -1,0 +1,19 @@
+{
+  "domain": "worlty",
+  "name": "Worlty",
+  "codeowners": ["@GuGu927"],
+  "version": "0.0.0",
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "https://www.home-assistant.io/integrations/worlty",
+  "homekit": {},
+  "iot_class": "local_push",
+  "requirements": [],
+  "ssdp": [],
+  "zeroconf": [
+    {
+      "type": "_worlty._tcp.local.",
+      "name": "worlty*"
+    }
+  ]
+}
