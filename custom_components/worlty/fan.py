@@ -79,7 +79,7 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Worlty entity."""
-    coordinator: WorltyDataCoordinator = hass.data[DOMAIN][config_entry.entry_id]
+    coordinator: WorltyDataCoordinator = hass.data[DOMAIN][config_entry.entry_id]["api"]
     entities = []
     if coordinator.data is not None:
         entities = [
@@ -159,8 +159,7 @@ class WorltyFan(WorltyBaseEntity, FanEntity):
         """Return the current speed percentage."""
         if len(self._fan_speeds) == 0:
             return None
-        state = self.worlty_attribute.get("stt")
-        if state:
+        if self.is_on:
             sp = self.worlty_attribute.get("sp")
             return ordered_list_item_to_percentage(
                 self._fan_speeds, FAN_SPEED_MAPPING.get(sp, "off")
@@ -195,12 +194,12 @@ class WorltyFan(WorltyBaseEntity, FanEntity):
             else "off"
         )
         speed_key = fan_speed_to_key(speed_value)
+        payload = {"stt": speed_key is not None}
         if self.preset_mode is not None and self.preset_mode != "off":
-            await self.set_device(
-                stt=True, sp=speed_key, m=fan_mode_to_key(self.preset_mode)
-            )
-            return None
-        await self.set_device(stt=True, sp=speed_key)
+            payload["m"] = fan_mode_to_key(self.preset_mode)
+        if speed_key is not None:
+            payload["sp"] = speed_key
+        await self.set_device(**payload)
 
     async def async_set_preset_mode(self, preset_mode: str) -> None:
         """Set the preset mode of the fan."""

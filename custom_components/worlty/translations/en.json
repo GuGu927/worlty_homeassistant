@@ -14,7 +14,7 @@
         },
         "step": {
             "discovery_confirm": {
-                "description": "Do you want to set up ({ip_address}:{port})?"
+                "description": "Do you want to set up device {host}({ip_address}:{port})?"
             },
             "user": {
                 "data": {
@@ -141,9 +141,6 @@
                         }
                     }
                 }
-            },
-            "boiler": {
-                "name": "Boiler {sub_id}"
             }
         },
         "fan": {
@@ -359,6 +356,11 @@
             },
             "valve": {
                 "name": "Valve {sub_id}"
+            }
+        },
+        "water_heater": {
+            "boiler": {
+                "name": "Boiler {sub_id}"
             }
         }
     }

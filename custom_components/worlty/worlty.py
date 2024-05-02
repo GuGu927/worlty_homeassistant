@@ -2,8 +2,9 @@
 
 import asyncio
 from collections import defaultdict
+import datetime
 import json
-from typing import Any
+from typing import Any, Optional
 
 from homeassistant.components.binary_sensor import BinarySensorEntityDescription
 from homeassistant.components.climate import ClimateEntityDescription
@@ -11,6 +12,7 @@ from homeassistant.components.fan import FanEntityDescription
 from homeassistant.components.light import LightEntityDescription
 from homeassistant.components.sensor import SensorEntityDescription
 from homeassistant.components.switch import SwitchEntityDescription
+from homeassistant.components.water_heater import WaterHeaterEntityEntityDescription
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant, callback
@@ -22,6 +24,7 @@ from .const import (
     DOMAIN,
     LOGGER,
     MANUFACTURER,
+    WorltyBaseType,
     get_worlty_description,
     map_worlty_state,
     map_worlty_sub,
@@ -39,7 +42,7 @@ def map_worlty_entity_description(
     if key is None:
         return None, "unknown"
 
-    platform_type = map_worlty_to_platform(worlty_type)
+    platform_type = map_worlty_to_platform(worlty_type, worlty_class)
     entity_description_cls = {
         Platform.BINARY_SENSOR: BinarySensorEntityDescription,
         Platform.CLIMATE: ClimateEntityDescription,
@@ -47,6 +50,7 @@ def map_worlty_entity_description(
         Platform.LIGHT: LightEntityDescription,
         Platform.SENSOR: SensorEntityDescription,
         Platform.SWITCH: SwitchEntityDescription,
+        Platform.WATER_HEATER: WaterHeaterEntityEntityDescription,
     }.get(platform_type)
 
     if entity_description_cls:
@@ -87,7 +91,7 @@ class WorltyLocal:
     ) -> None:
         """Initialize."""
         self.hass = hass
-        self._entry: ConfigEntry = None
+        self._entry: Optional[ConfigEntry] = None
         self._host: str = host
         self._port: int = port
         self._access_token: str = access_token
@@ -97,15 +101,16 @@ class WorltyLocal:
         self._disconnect = False
         self._connected = False
         self._reconnect = False
-        self._queue = []
+        self._health = datetime.datetime.now()
+        self._queue: list[dict[str, Any]] = []
 
         self._add_entity_listeners: dict[Platform, Any] = defaultdict()
         self._entity_map: dict[str, dict[str, Any]] = {}
         self._entities: dict[Platform, dict[str, dict[str, Any]]] = defaultdict(dict)
-        self._worlty_devices = []
-        self.worlty_pad: WorltyBaseDevice = None
+        self.worlty_pad: Optional[WorltyBaseDevice] = None
         self.worlty_entity: dict[str, WorltyBaseEntity] = {}
         self.worlty_entities: dict[Platform, list[WorltyBaseEntity]] = defaultdict(list)
+        LOGGER.debug(f"API created with {self._host}:{self._port}")
 
     @classmethod
     async def create(
@@ -189,25 +194,37 @@ class WorltyLocal:
                     f"[{self.worlty_pad.device_id if self.worlty_pad is not None else self._host}] Authenticated {self._host}:{self._port}, entry=None"
                 )
                 return True, data
-            self._entry = entry
+            if self._entry is None:
+                self._entry = entry
+                self._health = datetime.datetime.now()
+                if (
+                    self.hass.data[DOMAIN][self._entry.entry_id].get("health")
+                    is not None
+                ):
+                    self.hass.data[DOMAIN][self._entry.entry_id]["health"].cancel()
+                self.hass.data[DOMAIN][self._entry.entry_id]["health"] = (
+                    self.hass.loop.create_task(self.health_check())
+                )
 
-            self.worlty_pad = WorltyBaseDevice(data)
-            device_registry = dr.async_get(self.hass)
-            device_registry.async_get_or_create(
-                config_entry_id=self._entry.entry_id,
-                identifiers={(DOMAIN, self.worlty_pad.mac_address)},
-                serial_number=self.worlty_pad.mac_address,
-                manufacturer=self.worlty_pad.manufacturer,
-                name=self.worlty_pad.device_id,
-                model=self.worlty_pad.device_model,
-                sw_version=self.worlty_pad.fw_version,
-            )
+                self.worlty_pad = WorltyBaseDevice(data)
+                device_registry = dr.async_get(self.hass)
+                device_registry.async_get_or_create(
+                    config_entry_id=self._entry.entry_id,
+                    identifiers={(DOMAIN, self.worlty_pad.mac_address)},
+                    serial_number=self.worlty_pad.mac_address,
+                    manufacturer=self.worlty_pad.manufacturer,
+                    name=self.worlty_pad.device_id,
+                    model=self.worlty_pad.device_model,
+                    sw_version=self.worlty_pad.fw_version,
+                )
 
-            self._entity_map: dict[str, dict[str, Any]] = self.get_data("devices", {})
-            for device in self._entity_map.copy().values():
-                self.update_device(device)
-            for k, v in data.items():
-                self.set_data(k, v)
+                self._entity_map: dict[str, dict[str, Any]] = self.get_data(
+                    "devices", {}
+                )
+                for device in self._entity_map.copy().values():
+                    self.update_device(device)
+                for k, v in data.items():
+                    self.set_data(k, v)
             LOGGER.debug(
                 f"[{self.worlty_pad.device_id if self.worlty_pad is not None else self._host}] Authenticated {self._host}:{self._port}"
             )
@@ -220,25 +237,31 @@ class WorltyLocal:
     async def reauth(self) -> bool:
         """Retry auth."""
         if self._connected is False and self._disconnect is False:
-            auth, _ = await self.auth()
+            auth, _ = await self.auth(self._entry)
             while not auth:
                 if self._connected is True:
                     self._connected = False
                     self.terminate()
                 await asyncio.sleep(5)
-                auth, _ = await self.auth()
+                auth, _ = await self.auth(self._entry)
 
             if self.worlty_pad is not None:
                 self.worlty_pad.device_available = auth
-            if self.hass.data[DOMAIN]["task"] is not None:
-                self.hass.data[DOMAIN]["task"].done()
+            if self.hass.data[DOMAIN][self._entry.entry_id].get("task") is not None:
+                self.hass.data[DOMAIN][self._entry.entry_id]["task"].cancel()
             result = await self.get_worlty_devices()
             if result is None:
                 self._connected = False
                 self.terminate()
                 return False
-            self.hass.data[DOMAIN]["task"] = self.hass.loop.create_task(
-                self.listen_for_message()
+            self.hass.data[DOMAIN][self._entry.entry_id]["task"] = (
+                self.hass.loop.create_task(self.listen_for_message())
+            )
+            self._health = datetime.datetime.now()
+            if self.hass.data[DOMAIN][self._entry.entry_id].get("health") is not None:
+                self.hass.data[DOMAIN][self._entry.entry_id]["health"].cancel()
+            self.hass.data[DOMAIN][self._entry.entry_id]["health"] = (
+                self.hass.loop.create_task(self.health_check())
             )
             await asyncio.sleep(5)
             self._reconnect = True
@@ -288,7 +311,7 @@ class WorltyLocal:
             merge = True
             while merge:
                 chunk = await asyncio.wait_for(
-                    self._subscribe.read(1024 * 30), timeout=timeout
+                    self._subscribe.read(1024 * 10), timeout=timeout
                 )
                 if not chunk:
                     return {}
@@ -302,34 +325,66 @@ class WorltyLocal:
                         continue
         except TimeoutError:
             return {"error": "timeout"}
+        except ConnectionError:
+            return {"error": "connection"}
         return {}
+
+    async def health_check(self):
+        """Health check."""
+        while datetime.datetime.now() - self._health < datetime.timedelta(seconds=120):
+            await asyncio.sleep(1)
+            if datetime.datetime.now() - self._health >= datetime.timedelta(
+                seconds=120
+            ):
+                LOGGER.debug(
+                    f"[{self.worlty_pad.device_id if self.worlty_pad is not None else self._host}] Health elapsed 120 seconds"
+                )
+        if self.hass.data[DOMAIN][self._entry.entry_id].get("task") is not None:
+            self.hass.data[DOMAIN][self._entry.entry_id]["task"].cancel()
+        self.terminate()
 
     async def listen_for_message(self):
         """Listen for Wolrty message."""
-        LOGGER.debug("Listen for Wolrty message")
+        LOGGER.debug(
+            f"[{self.worlty_pad.device_id if self.worlty_pad is not None else self._host}] Listen for Wolrty message"
+        )
         try:
             while self._connected:
-                message: dict[str, Any] = await self.subscribe(0.1)
+                message: dict[str, Any] = await self.subscribe(0.2)
                 if message.get("data"):
+                    self._health = datetime.datetime.now()
                     self.hass.loop.create_task(self.handle_message(message))
                 elif message.get("error"):
                     continue
                 else:
                     break
         except asyncio.CancelledError:
-            LOGGER.debug("Listener cancelled")
+            LOGGER.debug(
+                f"[{self.worlty_pad.device_id if self.worlty_pad is not None else self._host}] Listener cancelled"
+            )
         finally:
             if self.worlty_pad is not None:
                 self.worlty_pad.device_available = False
-            LOGGER.debug("Listener finished")
+            LOGGER.debug(
+                f"[{self.worlty_pad.device_id if self.worlty_pad is not None else self._host}] Listener finished"
+            )
             self._connected = False
             self.terminate()
             await asyncio.sleep(1)
             if self._disconnect is False:
-                LOGGER.debug("Try auth as listener finished")
+                LOGGER.debug(
+                    f"[{self.worlty_pad.device_id if self.worlty_pad is not None else self._host}] Try auth as listener finished"
+                )
                 success = await self.reauth()
                 while not success:
                     success = await self.reauth()
+
+    def is_entity_changed(self, pk, lct) -> dict:
+        """Get entity with pk and lct."""
+        for info in self._entity_map.values():
+            if info.get("pk", 0) == pk and info.get("lct", 0) != lct:
+                return True
+        return False
 
     async def handle_message(self, message: dict[str, Any]) -> None:
         """Handle Wolrty message."""
@@ -354,8 +409,13 @@ class WorltyLocal:
                 self.set_data("devices", self._entity_map.copy())
         elif data_type == "health":
             devices: dict[str, int] = data.get("devices")
-            pks = [int(pk) for pk, _ in devices.items()]
-            await self.publish({"type": "get", "data": {"devices": pks}})
+            pks = [
+                int(pk)
+                for pk, lct in devices.items()
+                if self.is_entity_changed(pk, lct)
+            ]
+            if len(pks) > 0:
+                await self.publish({"type": "get", "data": {"devices": pks}})
         elif data_type == "device/list":
             # TODO 해당 데이터에 없는 entity 삭제
             await self.publish({"type": "get", "data": {"devices": devices}})
@@ -407,7 +467,9 @@ class WorltyLocal:
         else:
             entity = self._entity_map.setdefault(unique_id, device)
             entity.update(device)
-            entity_platform: Platform = map_worlty_to_platform(entity.get("type"))
+            entity_platform: Platform = map_worlty_to_platform(
+                entity.get("type"), entity.get("cls")
+            )
             if entity_platform is not None:
                 entity = self._entities[entity_platform].setdefault(unique_id, device)
                 entity.update(device)
@@ -435,7 +497,6 @@ class WorltyLocal:
                     "data": {"devices": self._queue},
                 }
             )
-            await self.publish(self._queue)
             self.deque()
 
     def queue(self, data) -> None:
@@ -443,10 +504,12 @@ class WorltyLocal:
         self._queue = [q for q in self._queue if q.get("pk") != data.get("pk")]
         self._queue.append(data)
 
-        if self.hass.data[DOMAIN].get("loop") is not None:
-            self.hass.data[DOMAIN]["loop"].cancel()
+        if self.hass.data[DOMAIN][self._entry.entry_id].get("loop") is not None:
+            self.hass.data[DOMAIN][self._entry.entry_id]["loop"].cancel()
 
-        self.hass.data[DOMAIN]["loop"] = self.hass.loop.create_task(self.loop())
+        self.hass.data[DOMAIN][self._entry.entry_id]["loop"] = (
+            self.hass.loop.create_task(self.loop())
+        )
 
     def deque(self) -> None:
         """Deque message."""
@@ -489,7 +552,7 @@ class WorltyBaseEntity(Entity):
     worlty_pk: int
     worlty_name: str
     worlty_sub: str
-    worlty_type: Platform
+    worlty_type: int
     worlty_class: int
     worlty_state: Any
     worlty_last_changed_time: int
@@ -531,11 +594,14 @@ class WorltyBaseEntity(Entity):
         )
         self.worlty_type = entity_info.get("type")
         self.worlty_class = entity_info.get("cls")
-        self.worlty_state = map_worlty_state(
-            self.hass.config.language, entity_info.get("stt")
-        )
         self.worlty_last_changed_time = entity_info.get("lct")
         self.worlty_attribute = entity_info.get("payload")
+        state = map_worlty_state(self.hass.config.language, entity_info.get("stt"))
+        self.worlty_state = (
+            state
+            if self.worlty_type != WorltyBaseType.EVENT.value
+            else f"{state}({datetime.datetime.fromtimestamp(self.worlty_last_changed_time).strftime("%H:%M:%S")})"
+        )
 
         self._update_entity = entity_update
         self._loaded = False
@@ -556,12 +622,12 @@ class WorltyBaseEntity(Entity):
 
         self.coordinator.register_entity(self)
         LOGGER.debug(
-            f"Initialize a worlty entity -> {repr(self)}, {self.entity_description}"
+            f"[{self.coordinator.get_data("device_id")}] Initialize a worlty entity -> {repr(self)}"
         )
 
     def __repr__(self) -> str:
         """Return a string representation of Worlty entity."""
-        return f"{'WorltyEntity' if not self.worlty_is_child else 'WorltyChild'}(id={self.worlty_unique_id}, name={self.worlty_name}, type={self.worlty_type}, class={map_worlty_to_platform(self.worlty_type)})"
+        return f"{'WorltyEntity' if not self.worlty_is_child else 'WorltyChild'}(id={self.worlty_unique_id}, name={self.worlty_name}, type={self.worlty_type}, class={map_worlty_to_platform(self.worlty_type,self.worlty_class)})"
 
     async def async_added_to_hass(self):
         """Call when entity is added to hass."""
@@ -570,20 +636,31 @@ class WorltyBaseEntity(Entity):
 
     def _update_callback(self):
         """Update the state."""
-        if self._update_entity is not None:
-            self._update_entity()
         self.schedule_update_ha_state()
 
     def update_entity(self, entity_info: dict[str, Any]) -> None:
         """Update entity info."""
         if self._loaded is True:
             if "payload" in entity_info:
-                self.worlty_state = map_worlty_state(
+                self.worlty_last_changed_time = entity_info.get("lct")
+                payload: dict = entity_info.get("payload")
+                if payload != self.worlty_attribute:
+                    if self._update_entity is not None:
+                        self._update_entity()
+                    self.worlty_attribute.update(entity_info.get("payload"))
+                state = map_worlty_state(
                     self.hass.config.language, entity_info.get("stt")
                 )
-                self.worlty_last_changed_time = entity_info.get("lct")
-                self.worlty_attribute.update(entity_info.get("payload"))
-                self._update_callback()
+                payload_state = map_worlty_state(
+                    self.hass.config.language, payload.get("stt")
+                )
+                if state != self.worlty_state or payload_state != self.worlty_state:
+                    self.worlty_state = (
+                        state
+                        if self.worlty_type != WorltyBaseType.EVENT.value
+                        else f"{state}({datetime.datetime.fromtimestamp(self.worlty_last_changed_time).strftime("%H:%M:%S")})"
+                    )
+                    self._update_callback()
 
     async def set_device(self, **kwargs: Any) -> None:
         """Publish set device."""

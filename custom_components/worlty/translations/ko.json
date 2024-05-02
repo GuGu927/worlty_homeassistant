@@ -1,4 +1,5 @@
 {
+    "title": "월티",
     "config": {
         "abort": {
             "already_configured": "이미 등록되어 있습니다",
@@ -14,7 +15,7 @@
         },
         "step": {
             "discovery_confirm": {
-                "description": "장치를 연결하시겠어요? ({ip_address}:{port})"
+                "description": "장치를 연결하시겠어요? {host}({ip_address}:{port})"
             },
             "user": {
                 "data": {
@@ -141,7 +142,9 @@
                         }
                     }
                 }
-            },
+            }
+        },
+        "water_heater": {
             "boiler": {
                 "name": "보일러 {sub_id}"
             }

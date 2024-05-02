@@ -122,7 +122,7 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up Worlty entity."""
-    coordinator: WorltyDataCoordinator = hass.data[DOMAIN][config_entry.entry_id]
+    coordinator: WorltyDataCoordinator = hass.data[DOMAIN][config_entry.entry_id]["api"]
     entities = []
     if coordinator.data is not None:
         entities = [
@@ -166,33 +166,25 @@ class WorltyClimate(WorltyBaseEntity, ClimateEntity):
         """Update entity."""
         self._supported_features = 0
         self._hvac_modes = [HVACMode.OFF]
-        self._preset_modes = []
+        self._preset_modes = [PRESET_NONE]
         self._fan_modes = []
         self._swing_modes = []
 
         sm = self.worlty_attribute.get("sm", 0)
-        self._hvac_modes = [HVACMode.OFF]
-
         for mode_bit, hvac_mode in HVAC_MODE_MAPPING.items():
             if sm & (1 << mode_bit):
                 self._hvac_modes.append(hvac_mode)
-
-        self._preset_modes = [PRESET_NONE]
 
         for preset_bit, preset_mode in PRESET_MODE_MAPPING.items():
             if sm & (1 << preset_bit):
                 self._preset_modes.append(preset_mode)
 
         sf = self.worlty_attribute.get("sf", 0)
-        self._fan_modes = []
-
         for fan_bit, fan_mode in FAN_MODE_MAPPING.items():
             if sf & (1 << fan_bit):
                 self._fan_modes.append(fan_mode)
 
         ssw = self.worlty_attribute.get("ssw", 0)
-        self._swing_modes = []
-
         for swing_bit, swing_mode in SWING_MODE_MAPPING.items():
             if ssw & (1 << swing_bit):
                 self._swing_modes.append(swing_mode)

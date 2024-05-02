@@ -8,7 +8,7 @@ import voluptuous as vol
 
 from homeassistant.components import onboarding, zeroconf
 from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
-from homeassistant.const import CONF_ACCESS_TOKEN, CONF_IP_ADDRESS, CONF_PORT
+from homeassistant.const import CONF_ACCESS_TOKEN, CONF_HOST, CONF_IP_ADDRESS, CONF_PORT
 import homeassistant.helpers.config_validation as cv
 
 from .const import DOMAIN, LOGGER, MANUFACTURER
@@ -74,16 +74,13 @@ class WorltyFlowHandler(ConfigFlow, domain=DOMAIN):
 
         host = discovery_info.host
         port = discovery_info.port
-        LOGGER.debug(f"{discovery_info}")
         if port != 80:
             device_id = discovery_info.name.split(".")[0]
             await self.async_set_unique_id(device_id)
-            self._abort_if_unique_id_configured(
-                updates={CONF_IP_ADDRESS: host, CONF_PORT: port}
-            )
+            self._abort_if_unique_id_configured()
 
             LOGGER.info(f"Device found with {device_id} [{host}:{port}]")
-            self._device = [host, port]
+            self._device = [device_id, host, port]
             return await self.async_step_discovery_confirm()
         return self.async_abort(reason="unreachable")
 
@@ -97,9 +94,9 @@ class WorltyFlowHandler(ConfigFlow, domain=DOMAIN):
                 data_schema=vol.Schema(
                     {
                         vol.Required(
-                            CONF_IP_ADDRESS, default=self._device[0]
+                            CONF_IP_ADDRESS, default=self._device[1]
                         ): cv.string,
-                        vol.Required(CONF_PORT, default=self._device[1]): cv.port,
+                        vol.Required(CONF_PORT, default=self._device[2]): cv.port,
                         vol.Required(CONF_ACCESS_TOKEN): cv.string,
                     }
                 ),
@@ -107,8 +104,9 @@ class WorltyFlowHandler(ConfigFlow, domain=DOMAIN):
             )
 
         placeholders = {
-            CONF_IP_ADDRESS: self._device[0],
-            CONF_PORT: self._device[1],
+            CONF_HOST: self._device[0],
+            CONF_IP_ADDRESS: self._device[1],
+            CONF_PORT: self._device[2],
         }
         return self.async_show_form(
             step_id="discovery_confirm",

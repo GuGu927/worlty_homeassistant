@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from enum import Enum
 import logging
+from typing import Any
 
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
 from homeassistant.components.sensor import SensorDeviceClass
@@ -47,10 +48,17 @@ class WorltyBaseType(Enum):
     COVER = 9
 
 
-def map_worlty_state(lang, state) -> str:
+def map_worlty_state(lang, state) -> Any:
     """Map for worlty sub id."""
     return {
         "en": {
+            "high": "High",
+            "medium": "Medium",
+            "low": "Low",
+            "auto": "Auto",
+            "weak": "Weak",
+            "boost": "Boost",
+            "eco": "Eco",
             "arrive": "Arrive",
             "call": "Call",
             "detect": "Detect",
@@ -65,17 +73,24 @@ def map_worlty_state(lang, state) -> str:
             "wait": "Wait",
         },
         "ko": {
+            "high": "강",
+            "medium": "중",
+            "low": "약",
+            "auto": "자동",
+            "weak": "최저",
+            "boost": "최고",
+            "eco": "절전",
             "arrive": "도착",
             "call": "통화",
             "detect": "감지",
-            "down": "하향",
+            "down": "아래쪽",
             "idle": "대기",
             "left": "왼쪽",
             "move": "이동",
             "open": "열기",
             "right": "오른쪽",
             "ring": "벨소리",
-            "up": "상향",
+            "up": "위쪽",
             "wait": "기다림",
         },
     }.get(lang, {}).get(state, state)
@@ -103,7 +118,7 @@ def map_worlty_sub(lang, sub_id) -> str:
         },
         "ko": {
             "ctrl_mode": "리모컨모드",
-            "ctrl_speed": "라모컨속도",
+            "ctrl_speed": "리모컨속도",
             "target_speed": "월티속도",
             "blr-err": "보일러에러",
             "front": "현관앞",
@@ -121,7 +136,7 @@ def map_worlty_sub(lang, sub_id) -> str:
     }.get(lang, {}).get(sub_id, sub_id)
 
 
-def map_worlty_to_platform(worlty_type) -> str:
+def map_worlty_to_platform(worlty_type, worlty_class) -> str:
     """Map for Worlty type to Platform."""
     mapping = {
         WorltyBaseType.BINARY_SENSOR.value: Platform.BINARY_SENSOR.value,
@@ -133,7 +148,10 @@ def map_worlty_to_platform(worlty_type) -> str:
         WorltyBaseType.SENSOR.value: Platform.SENSOR.value,
         WorltyBaseType.SWITCH.value: Platform.SWITCH.value,
     }
-    return mapping.get(worlty_type)
+    ha_type = mapping.get(worlty_type)
+    if worlty_type == WorltyBaseType.CLIMATE.value and worlty_class == 1:
+        ha_type = Platform.WATER_HEATER.value
+    return ha_type
 
 
 def get_worlty_description(worlty_device_type: int, worlty_device_class: int) -> tuple:

@@ -2,7 +2,7 @@
   "config": {
     "step": {
       "discovery_confirm": {
-        "description": "Do you want to set up ({ip_address}:{port})?"
+        "description": "Do you want to set up device {host}({ip_address}:{port})?"
       },
       "user": {
         "description": "Connect to Worlty locally.\n\nYou can get Access Token in Wolrty APP.",
@@ -75,7 +75,9 @@
             }
           }
         }
-      },
+      }
+    },
+    "water_heater": {
       "boiler": {
         "name": "Boiler {sub_id}"
       }
