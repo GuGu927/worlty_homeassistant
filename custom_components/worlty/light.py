@@ -72,6 +72,8 @@ class WorltyLight(WorltyBaseEntity, LightEntity):
             bri = value_to_brightness((1, self.wt_level_max), level)
         if bri is not None and bri > 0:
             self.wt_last_bri = bri
+        if bri is not None:
+            self._color_mode = ColorMode.BRIGHTNESS
         return bri
 
     @property

@@ -350,7 +350,7 @@ class WorltyLocal:
         )
         try:
             while self._connected:
-                message: dict[str, Any] = await self.subscribe(0.2)
+                message: dict[str, Any] = await self.subscribe(0.5)
                 if message.get("data"):
                     self._health = datetime.datetime.now()
                     self.hass.loop.create_task(self.handle_message(message))
@@ -377,6 +377,7 @@ class WorltyLocal:
                 )
                 success = await self.reauth()
                 while not success:
+                    await asyncio.sleep(10)
                     success = await self.reauth()
 
     def is_entity_changed(self, pk, lct) -> dict:
