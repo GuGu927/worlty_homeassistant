@@ -153,9 +153,7 @@ class WorltyWaterHeater(WorltyBaseEntity, WaterHeaterEntity):
 
     async def async_set_temperature(self, **kwargs: Any) -> None:
         """Set new target temperature."""
-        if self.hvac_mode == HVACMode.FAN_ONLY:
-            return None
-        await self.set_device(stt=True, tt=kwargs.get(ATTR_TEMPERATURE))
+        await self.set_device(stt=True, m=1, tt=kwargs.get(ATTR_TEMPERATURE))
 
     async def async_turn_away_mode_on(self) -> None:
         """Turn the entity away mode on."""
