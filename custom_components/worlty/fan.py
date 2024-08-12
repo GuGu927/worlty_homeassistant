@@ -135,6 +135,9 @@ class WorltyFan(WorltyBaseEntity, FanEntity):
                 self._fan_swings.append(fan_swing)
 
         features = 0
+        if len(self._fan_modes) > 0 or len(self._fan_speeds) > 0:
+            features |= FanEntityFeature.TURN_ON
+            features |= FanEntityFeature.TURN_OFF
         if len(self._fan_modes) > 0:
             features |= FanEntityFeature.PRESET_MODE
         if len(self._fan_speeds) > 0:
