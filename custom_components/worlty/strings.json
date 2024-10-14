@@ -77,11 +77,6 @@
         }
       }
     },
-    "water_heater": {
-      "boiler": {
-        "name": "Boiler {sub_id}"
-      }
-    },
     "fan": {
       "fan": { "name": "Fan {sub_id}" },
       "sysclein": { "name": "Sysclein {sub_id}" },
@@ -99,7 +94,9 @@
       "lock": { "name": "Lock {sub_id}" },
       "cook": { "name": "Cook {sub_id}" },
       "elevator": { "name": "Elevator {sub_id}" },
-      "interphone": { "name": "Interphone {sub_id}" }
+      "interphone": { "name": "Interphone {sub_id}" },
+      "timer": { "name": "Timer {sub_id}" },
+      "worlty": { "name": "Worlty Control {sub_id}" }
     },
     "sensor": {
       "event": { "name": "Event {sub_id}" },
@@ -159,7 +156,23 @@
       "weather": { "name": "Weather {sub_id}" },
       "weight": { "name": "Weight {sub_id}" },
       "wind_speed": { "name": "Wind Speed {sub_id}" },
-      "multisensor": { "name": "Multisensor {sub_id}" }
+      "multisensor": { "name": "Multisensor {sub_id}" },
+      "worlty_run_ms": { "name": "Worlty Run Time {sub_id}" },
+      "last_execute": { "name": "Last Timer Execute Time {sub_id}" }
+    },
+    "number": {
+      "number": { "name": "Input Number {sub_id}" }
+    },
+    "time": {
+      "time": { "name": "Input Time {sub_id}" }
+    },
+    "date": {
+      "date": { "name": "Input Date {sub_id}" }
+    },
+    "water_heater": {
+      "boiler": {
+        "name": "Boiler {sub_id}"
+      }
     }
   }
 }

@@ -1,5 +1,6 @@
 """Worlty sensor."""
 
+from datetime import datetime, timezone, timedelta
 from typing import Any
 
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
@@ -53,7 +54,22 @@ class WorltySensor(WorltyBaseEntity, SensorEntity):
 
     @property
     def native_value(self) -> StateType:
-        """Return the native value of the sensor."""
+        """Return the native value of the sensor with timezone information."""
+        tz = timezone(timedelta(hours=9))
+        if self.worlty_class == 45:
+            if self.worlty_state == "-":
+                return datetime.now(tz)
+            else:
+                return datetime.fromtimestamp(int(self.worlty_state), tz)
+
+        try:
+            value = float(self.worlty_state)
+            if self.worlty_name.endswith("_ms"):
+                value /= 1000
+            return value
+        except (ValueError, TypeError):
+            pass
+
         return self.worlty_state
 
     @property

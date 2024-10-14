@@ -8,7 +8,10 @@
     "light",
     "sensor",
     "switch",
-    "water_heater"
+    "water_heater",
+    "number",
+    "date",
+    "time"
   ],
   "render_readme": true
 }

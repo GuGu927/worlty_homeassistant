@@ -2,7 +2,7 @@
   "domain": "worlty",
   "name": "Worlty",
   "codeowners": ["@GuGu927"],
-  "version": "0.0.0",
+  "version": "0.0.1",
   "config_flow": true,
   "dependencies": [],
   "documentation": "https://www.home-assistant.io/integrations/worlty",

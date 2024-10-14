@@ -14,7 +14,6 @@ from homeassistant.const import (
     CONCENTRATION_PARTS_PER_MILLION,
     LIGHT_LUX,
     PERCENTAGE,
-    POWER_VOLT_AMPERE_REACTIVE,
     Platform,
     UnitOfApparentPower,
     UnitOfElectricPotential,
@@ -26,6 +25,7 @@ from homeassistant.const import (
     UnitOfTemperature,
     UnitOfVolume,
     UnitOfVolumeFlowRate,
+    UnitOfReactivePower,
 )
 
 DOMAIN = "worlty"
@@ -50,98 +50,132 @@ class WorltyBaseType(Enum):
 
 def map_worlty_state(lang, state) -> Any:
     """Map for worlty sub id."""
-    return {
-        "en": {
-            "high": "High",
-            "medium": "Medium",
-            "low": "Low",
-            "auto": "Auto",
-            "weak": "Weak",
-            "boost": "Boost",
-            "eco": "Eco",
-            "arrive": "Arrive",
-            "call": "Call",
-            "detect": "Detect",
-            "down": "Down",
-            "idle": "idle",
-            "left": "Left",
-            "move": "Move",
-            "open": "Open",
-            "right": "Right",
-            "ring": "Ring",
-            "up": "Up",
-            "wait": "Wait",
-        },
-        "ko": {
-            "high": "강",
-            "medium": "중",
-            "low": "약",
-            "auto": "자동",
-            "weak": "최저",
-            "boost": "최고",
-            "eco": "절전",
-            "arrive": "도착",
-            "call": "통화",
-            "detect": "감지",
-            "down": "아래쪽",
-            "idle": "대기",
-            "left": "왼쪽",
-            "move": "이동",
-            "open": "열기",
-            "right": "오른쪽",
-            "ring": "벨소리",
-            "up": "위쪽",
-            "wait": "기다림",
-        },
-    }.get(lang, {}).get(state, state)
+    return (
+        {
+            "en": {
+                "high": "High",
+                "medium": "Medium",
+                "low": "Low",
+                "auto": "Auto",
+                "weak": "Weak",
+                "boost": "Boost",
+                "eco": "Eco",
+                "arrive": "Arrive",
+                "call": "Call",
+                "detect": "Detect",
+                "down": "Down",
+                "idle": "idle",
+                "left": "Left",
+                "move": "Move",
+                "open": "Open",
+                "right": "Right",
+                "ring": "Ring",
+                "up": "Up",
+                "wait": "Wait",
+            },
+            "ko": {
+                "high": "강",
+                "medium": "중",
+                "low": "약",
+                "auto": "자동",
+                "weak": "최저",
+                "boost": "최고",
+                "eco": "절전",
+                "arrive": "도착",
+                "call": "통화",
+                "detect": "감지",
+                "down": "아래쪽",
+                "idle": "대기",
+                "left": "왼쪽",
+                "move": "이동",
+                "open": "열기",
+                "right": "오른쪽",
+                "ring": "벨소리",
+                "up": "위쪽",
+                "wait": "기다림",
+            },
+        }
+        .get(lang, {})
+        .get(state, state)
+    )
 
 
 def map_worlty_sub(lang, sub_id) -> str:
     """Map for worlty sub id."""
-    return {
-        "en": {
-            "ctrl_mode": "Controller Mode",
-            "ctrl_speed": "Controller Speed",
-            "target_speed": "Worlty Speed",
-            "blr-err": "Boiler Error",
-            "front": "Front of Door",
-            "event": "Event",
-            "cook": "GasValve",
-            "bell": "Bell",
-            "direction": "Elevator Direction",
-            "floor": "Elevator Floor",
-            "location": "Location",
-            "apt-1": "APT Gate",
-            "apt-2": "APT Gate(book open)",
-            "apt-3": "APT Gate(book shutdown)",
-            "apt-4": "APT Gate(always shutdown)",
-            "home-1": "Home Gate",
-            "home-2": "Home Gate(book open)",
-            "home-3": "Home Gate(book shutdown)",
-            "home-4": "Home Gate(always shutdown)",
-        },
-        "ko": {
-            "ctrl_mode": "리모컨모드",
-            "ctrl_speed": "리모컨속도",
-            "target_speed": "월티속도",
-            "blr-err": "보일러에러",
-            "front": "현관앞",
-            "event": "이벤트",
-            "cook": "가스밸브",
-            "bell": "초인종",
-            "direction": "엘리베이터 방향",
-            "floor": "엘리베이터 층",
-            "location": "위치",
-            "apt-1": "공동현관",
-            "apt-2": "공동현관(예약열기)",
-            "apt-3": "공동현관(예약종료)",
-            "apt-4": "공동현관(항상종료)",
-            "home-1": "세대현관",
-            "home-2": "세대현관(예약열기)",
-            "home-3": "세대현관(예약종료)",
-            "home-4": "세대현관(항상종료)",
-        },
-    }.get(lang, {}).get(sub_id, sub_id)
+    return (
+        {
+            "en": {
+                "ctrl_mode": "Controller Mode",
+                "ctrl_speed": "Controller Speed",
+                "target_speed": "Worlty Speed",
+                "blr-err": "Boiler Error",
+                "front": "Front of Door",
+                "event": "Event",
+                "cook": "GasValve",
+                "bell": "Bell",
+                "direction": "Elevator Direction",
+                "floor": "Elevator Floor",
+                "location": "Location",
+                "apt-1": "APT Gate",
+                "apt-2": "APT Gate(book open)",
+                "apt-3": "APT Gate(book shutdown)",
+                "apt-4": "APT Gate(always shutdown)",
+                "home-1": "Home Gate",
+                "home-2": "Home Gate(book open)",
+                "home-3": "Home Gate(book shutdown)",
+                "home-4": "Home Gate(always shutdown)",
+                "timer": "Timer",
+                "interval_ms": "Timer Interval",
+                "running_ms": "Timer Run Time",
+                "start_time": "Timer Start Time",
+                "end_time": "Timer End Time",
+                "start_date": "Timer Start Date",
+                "end_date": "Timer End Date",
+                "temp_offset": "Current Temperature Offset",
+                "temp_target": "Target Temperature",
+                "last_execute": "Timer Last Execute Time",
+                "worlty": "WorltyControl",
+                "worlty_offset": "WorltyControl Offset",
+                "worlty_run_ms": "WorltyControl Run Time",
+            },
+            "ko": {
+                "ctrl_mode": "리모컨모드",
+                "ctrl_speed": "리모컨속도",
+                "target_speed": "월티속도",
+                "blr-err": "보일러에러",
+                "front": "현관앞",
+                "event": "이벤트",
+                "cook": "가스밸브",
+                "bell": "초인종",
+                "direction": "엘리베이터 방향",
+                "floor": "엘리베이터 층",
+                "location": "위치",
+                "apt-1": "공동현관",
+                "apt-2": "공동현관(예약열기)",
+                "apt-3": "공동현관(예약종료)",
+                "apt-4": "공동현관(항상종료)",
+                "home-1": "세대현관",
+                "home-2": "세대현관(예약열기)",
+                "home-3": "세대현관(예약종료)",
+                "home-4": "세대현관(항상종료)",
+                "timer": "타이머",
+                "interval_ms": "타이머 작동간격",
+                "running_ms": "타이머 작동시간",
+                "start_time": "타이머 시작시간",
+                "end_time": "타이머 종료시간",
+                "start_date": "타이머 시작일자",
+                "end_date": "타이머 종료일자",
+                "temp_offset": "현재온도 오프셋",
+                "temp_target": "목표온도",
+                "last_execute": "타이머 최근 작동시각",
+                "worlty": "월티제어",
+                "worlty_offset": "월티제어 오프셋",
+                "worlty_run_ms": "월티제어 작동시간",
+            },
+        }
+        .get(lang, {})
+        .get(sub_id, sub_id)
+    )
 
 
 def map_worlty_to_platform(worlty_type, worlty_class) -> str:
@@ -159,6 +193,12 @@ def map_worlty_to_platform(worlty_type, worlty_class) -> str:
     ha_type = mapping.get(worlty_type)
     if worlty_type == WorltyBaseType.CLIMATE.value and worlty_class == 1:
         ha_type = Platform.WATER_HEATER.value
+    elif worlty_type == WorltyBaseType.INPUT.value and worlty_class == 0:
+        ha_type = Platform.NUMBER.value
+    # elif worlty_type == WorltyBaseType.INPUT.value and worlty_class == 3:
+    #     ha_type = Platform.TIME.value
+    # elif worlty_type == WorltyBaseType.INPUT.value and worlty_class == 4:
+    #     ha_type = Platform.DATE.value
     return ha_type
 
 
@@ -369,6 +409,13 @@ def get_worlty_description(worlty_device_type: int, worlty_device_class: int) ->
         WorltyBaseType.EVENT.value: {
             0: ("event", None, None, None),
             1: ("event_uss", None, None, None),
+        },
+        WorltyBaseType.INPUT.value: {
+            0: ("number", None, None, None),
+            # 1: ("string", None, None, None),
+            # 2: ("boolean", None, None, None),
+            3: ("time", None, None, None),
+            4: ("date", None, None, None),
         },
         WorltyBaseType.FAN.value: {
             0: ("fan", None, None, None),
@@ -607,7 +654,7 @@ def get_worlty_description(worlty_device_type: int, worlty_device_class: int) ->
                 SensorDeviceClass.REACTIVE_POWER.value,
                 SensorDeviceClass.REACTIVE_POWER,
                 None,
-                POWER_VOLT_AMPERE_REACTIVE,
+                UnitOfReactivePower.VOLT_AMPERE_REACTIVE,
             ),
             39: (
                 SensorDeviceClass.SIGNAL_STRENGTH.value,
