@@ -65,7 +65,8 @@
 
 ### Discovery(**권장**)
 
-- HomeAssistant 사이드패널 > 설정 > 통합 구성요소 > 발견된 `Worlty` 혹은 `월티` 구성하기<br>
+- HomeAssistant 사이드패널 > 알림 > New devices discovered > 발견된 `Worlty` 혹은 `월티` 구성하기<br>
+- HomeAssistant 사이드패널 > 설정 > 기기 및 서비스 > 통합 구성요소 > 발견된 `Worlty` 혹은 `월티` 구성하기<br>
 - 앱에서 발급받은 `비밀번호(Access Token)`를 입력.<br>
 - 완료!
 - `같은 네트워크 내에 존재하는 장치만 자동으로 검색됩니다.`
