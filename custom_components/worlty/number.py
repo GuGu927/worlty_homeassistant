@@ -16,8 +16,9 @@ NUMBER_RANGE = {
     "worlty_offset": [-2, 2, 0.1],
     "temp_offset": [-5, 5, 0.1],
     "temp_target": [10, 30, 0.1],
-    "interval_ms": [0.5 * 60 * 60, 5 * 60 * 60, 60],
+    "interval_ms": [10 * 60, 5 * 60 * 60, 60],
     "running_ms": [60, 60 * 60, 60],
+    "running_min_ms": [0, 20 * 60, 60],
 }
 
 
