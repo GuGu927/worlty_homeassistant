@@ -23,6 +23,8 @@
 | 0.0.1 | 2024.10.14 | HA 업데이트 대응 및 child 추가 |
 | 0.0.0 | 2024.09.01 | 서비스 공개                    |
 
+<br/>
+
 ## 안내사항
 
 - 지능형 홈네트워크의 모든 기능을 이용하려면 홈네트워크 장치 제조사 혹은 건설사의 `정식 서비스를 이용`하시기 바랍니다.
@@ -35,6 +37,33 @@
 - Home Assistant (최신버전)
 - 지능형 홈네트워크가 설치되어 있는 주거공간
 - `아파트 시공상황에 따라서 지원되는 항목이 다를 수 있습니다.`
+
+### 비밀번호(Access Token) 발급 방법
+
+- 월티 앱 실행
+  ![worlty_token_01](/img/worlty_token_01.jpg)
+  <br/>
+
+- 메뉴 클릭 > 내 장치 목록
+  ![worlty_token_02](/img/worlty_token_02.jpg)
+  <br/>
+
+- 장치 클릭
+  ![worlty_token_03](/img/worlty_token_03.jpg)
+  <br/>
+
+- 토큰 발급하기
+  ![worlty_token_04](/img/worlty_token_04.jpg)
+  <br/>
+
+- 최대 연결 개수, 포트 설정 후 발급하기 클릭
+  ![worlty_token_05](/img/worlty_token_05.jpg)
+  <br/>
+
+- 비밀번호(Access Token) 확인
+  ![worlty_token_06](/img/worlty_token_06.jpg)
+
+<br/>
 
 ## 설치방법
 
@@ -70,6 +99,8 @@
 - 앱에서 발급받은 `비밀번호(Access Token)`를 입력.<br>
 - 완료!
 - `같은 네트워크 내에 존재하는 장치만 자동으로 검색됩니다.`
+
+<br/>
 
 ### 통합구성요소 추가
 
