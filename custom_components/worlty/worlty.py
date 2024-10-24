@@ -536,7 +536,7 @@ class WorltyLocal:
 
     async def loop(self) -> None:
         """Loop for publish payload."""
-        await asyncio.sleep(0.1)
+        await asyncio.sleep(0.05)
         if len(self._queue) > 0:
             await self.publish(
                 {
