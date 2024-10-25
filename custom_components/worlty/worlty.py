@@ -34,6 +34,10 @@ from .const import (
     map_worlty_to_platform,
 )
 
+RETRY_INTERVAL = 5  # 연결 실패 시 재시도 간격 (초)
+MAX_RETRIES = 5     # 최대 재시도 횟수
+
+
 
 def map_worlty_entity_description(
     worlty_type: int, worlty_class: int, worlty_sub: str
@@ -132,27 +136,36 @@ class WorltyLocal:
 
         return instance
 
-    async def _connect(self):
+    async def _connect(self) -> bool:
         """Connnect device."""
-        try:
-            LOGGER.debug(
-                f"[{self.worlty_pad.device_id if self.worlty_pad is not None else self._host}] Try connect to {self._host}:{self._port}"
-            )
-            self._subscribe, self._publish = await asyncio.open_connection(
-                self._host, self._port, limit=20
-            )
-            self._connected = True
-            LOGGER.debug(
-                f"[{self.worlty_pad.device_id if self.worlty_pad is not None else self._host}] Connected to {self._host}:{self._port}"
-            )
-        except OSError as e:
-            if self.worlty_pad is not None:
-                self.worlty_pad.device_available = False
-            LOGGER.debug(
-                f"[{self.worlty_pad.device_id if self.worlty_pad is not None else self._host}] Can not connect to {self._host}:{self._port}, error: {e}"
-            )
-            return False
-        return True
+        retry_count = 0
+        while retry_count < MAX_RETRIES:
+            try:
+                LOGGER.debug(
+                    f"[{self.worlty_pad.device_id if self.worlty_pad is not None else self._host}] Try connect to {self._host}:{self._port}"
+                )
+                self._subscribe, self._publish = await asyncio.open_connection(
+                    self._host, self._port, limit=20
+                )
+                self._connected = True
+                LOGGER.debug(
+                    f"[{self.worlty_pad.device_id if self.worlty_pad is not None else self._host}] Connected to {self._host}:{self._port}"
+                )
+                return True
+            except (OSError, asyncio.TimeoutError) as e:
+                retry_count += 1
+                LOGGER.error(
+                    f"Connection failed ({retry_count}/{MAX_RETRIES} retries). Error: {e}"
+                )
+                self._connected = False
+                await asyncio.sleep(RETRY_INTERVAL) 
+
+            except Exception as e:
+                LOGGER.critical(f"Unexpected error: {e}")
+                break
+
+        LOGGER.warning(f"Failed to connect to {self._host}:{self._port} after {MAX_RETRIES} retries")
+        return False
 
     def terminate(self):
         """Terminate connection."""
@@ -256,7 +269,7 @@ class WorltyLocal:
                     self._connected = False
                     self.terminate()
 
-                await asyncio.sleep(30)
+                await asyncio.sleep(RETRY_INTERVAL)
                 auth, _ = await self.auth(self._entry)
 
             if self.worlty_pad is not None:
@@ -284,7 +297,7 @@ class WorltyLocal:
                 self.hass.loop.create_task(self.health_check())
             )
 
-            await asyncio.sleep(30)
+            await asyncio.sleep(RETRY_INTERVAL)
             self._reconnect = True
             return True
 
@@ -410,7 +423,7 @@ class WorltyLocal:
                 )
                 success = await self.reauth()
                 while not success:
-                    await asyncio.sleep(10)
+                    await asyncio.sleep(RETRY_INTERVAL)
                     success = await self.reauth()
 
     def is_entity_changed(self, pk, lct) -> dict:
