@@ -140,6 +140,8 @@ def map_worlty_sub(lang, sub_id) -> str:
                 "worlty": "WorltyControl",
                 "worlty_offset": "WorltyControl Offset",
                 "worlty_run_ms": "WorltyControl Run Time",
+                "water_in": "Water Input",
+                "water_out": "Water Output",
             },
             "ko": {
                 "ctrl_mode": "리모컨모드",
@@ -177,6 +179,8 @@ def map_worlty_sub(lang, sub_id) -> str:
                 "worlty": "월티제어",
                 "worlty_offset": "월티제어 오프셋",
                 "worlty_run_ms": "월티제어 작동시간",
+                "water_in": "출수",
+                "water_out": "환수",
             },
         }
         .get(lang, {})
