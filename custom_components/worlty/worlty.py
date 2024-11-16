@@ -376,10 +376,10 @@ class WorltyLocal:
             await asyncio.sleep(1)
 
             if datetime.datetime.now() - self._health >= datetime.timedelta(
-                seconds=120
+                seconds=240
             ):
                 LOGGER.debug(
-                    f"[{self.worlty_pad.device_id if self.worlty_pad is not None else self._host}] Health elapsed 120 seconds"
+                    f"[{self.worlty_pad.device_id if self.worlty_pad is not None else self._host}] Health elapsed 240 seconds"
                 )
         if self.hass.data[DOMAIN][self._entry.entry_id].get("task") is not None:
             self.hass.data[DOMAIN][self._entry.entry_id]["task"].cancel()
@@ -504,11 +504,11 @@ class WorltyLocal:
         self._update_or_create_worlty_entity(device)
 
         for child in device.get("children", []):
-            if child.get("hide") is not True:
-                child["parent_unique_id"] = self.make_unique_id(
-                    device.get("pk"), 0, device.get("did")
-                )
-                self._update_or_create_worlty_entity(child)
+            # if child.get("hide") is not True:
+            child["parent_unique_id"] = self.make_unique_id(
+                device.get("pk"), 0, device.get("did")
+            )
+            self._update_or_create_worlty_entity(child)
 
     def _update_or_create_worlty_entity(self, device: dict[str, Any]) -> None:
         """Create the device map."""
