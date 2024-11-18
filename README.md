@@ -19,6 +19,7 @@
 
 | 버전  |    날짜    | 내용                           |
 | :---: | :--------: | :----------------------------- |
+| 0.0.6 | 2024.11.17 | minor fix                      |
 | 0.0.5 | 2024.11.16 | minor fix                      |
 | 0.0.4 | 2024.10.29 | 난방 관련 child 추가           |
 | 0.0.3 | 2024.10.29 | minor fix                      |
@@ -111,5 +112,5 @@
 - 검색창에서 `Worlty` 혹은 `월티` 입력 후 선택<br>
 - IP에 추가할 `월티 장치의 IP주소`, 앱에서 설정한 `포트`, 앱에서 발급받은 `비밀번호(Access Token)`를 입력.
 
-[version-shield]: https://img.shields.io/badge/version-v0.0.5-orange.svg
+[version-shield]: https://img.shields.io/badge/version-v0.0.6-orange.svg
 [hacs-shield]: https://img.shields.io/badge/HACS-Custom-red.svg

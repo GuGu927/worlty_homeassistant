@@ -116,6 +116,7 @@ class WorltyLocal:
 
         self._add_entity_listeners: dict[Platform, Any] = defaultdict()
         self._entity_map: dict[str, dict[str, Any]] = {}
+        self._health_map: dict[str, int] = {}
         self._entities: dict[Platform, dict[str, dict[str, Any]]] = defaultdict(dict)
         self.worlty_pad: Optional[WorltyBaseDevice] = None
         self.worlty_entity: dict[str, WorltyBaseEntity] = {}
@@ -334,15 +335,28 @@ class WorltyLocal:
 
     async def publish(self, payload) -> bool:
         """Publish message."""
-        message = json.dumps(payload)
+        try:
+            message = json.dumps(payload)
+        except TypeError as e:
+            LOGGER.error(f"JSON serialization failed: {e}")
+            return False
 
-        LOGGER.debug(
-            f"[{self.worlty_pad.device_id if self.worlty_pad is not None else self._host}] Publish message : {message}"
-        )
+        if not self._publish:
+            LOGGER.error("Publish object is not initialized.")
+            return False
 
-        self._publish.write(message.encode())
-        await self._publish.drain()
-        return True
+        try:
+            self._publish.write(message.encode())
+            await asyncio.wait_for(self._publish.drain(), timeout=5)
+            return True
+        except (BrokenPipeError, ConnectionResetError) as e:
+            LOGGER.error(f"Publish failed: {e}")
+        except asyncio.TimeoutError:
+            LOGGER.error("Drain timeout.")
+        except Exception as e:
+            LOGGER.error(f"Unexpected error: {e}")
+
+        return False
 
     async def subscribe(self, timeout: float = None) -> dict[str, Any]:
         """Subscribe message."""
@@ -428,8 +442,8 @@ class WorltyLocal:
 
     def is_entity_changed(self, pk, lct) -> dict:
         """Get entity with pk and lct."""
-        for info in self._entity_map.values():
-            if info.get("pk", 0) == pk and info.get("lct", 0) != lct:
+        for hpk, hlct in self._health_map.values():
+            if hpk == pk and hlct != lct:
                 return True
         return False
 
