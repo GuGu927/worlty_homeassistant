@@ -145,9 +145,7 @@ class WorltyLocal:
                 LOGGER.debug(
                     f"[{self.worlty_pad.device_id if self.worlty_pad is not None else self._host}] Try connect to {self._host}:{self._port}"
                 )
-                self._subscribe, self._publish = await asyncio.open_connection(
-                    self._host, self._port, limit=20
-                )
+                self._subscribe, self._publish = await asyncio.open_connection(self._host, self._port)
                 self._connected = True
                 LOGGER.debug(
                     f"[{self.worlty_pad.device_id if self.worlty_pad is not None else self._host}] Connected to {self._host}:{self._port}"
@@ -178,6 +176,10 @@ class WorltyLocal:
     async def disconnect(self):
         """Disconnect device."""
         self._disconnect = True
+        
+    async def is_connected(self) -> bool:
+        """Check if the socket is connected."""
+        return not self._publish.is_closing()
 
     async def auth(self, entry: ConfigEntry = None):
         """Auth device."""
@@ -333,6 +335,14 @@ class WorltyLocal:
         
         return self._entry.data.get(name, default_value)
 
+    async def reconnect(self) -> bool:
+        """Attempt to reconnect the socket."""
+        try:
+            await self._connect()
+            return True
+        except Exception:
+            return False
+
     async def publish(self, payload) -> bool:
         """Publish message."""
         try:
@@ -346,16 +356,18 @@ class WorltyLocal:
             return False
 
         try:
+            if not await self.is_connected():
+                if not await self.reconnect():
+                    LOGGER.error(f"Reconnect failed")
+                    return False
+
             self._publish.write(message.encode())
             await asyncio.wait_for(self._publish.drain(), timeout=5)
             return True
-        except (BrokenPipeError, ConnectionResetError) as e:
-            LOGGER.error(f"Publish failed: {e}")
         except asyncio.TimeoutError:
-            LOGGER.error("Drain timeout.")
+            LOGGER.error(f"Publish failed: timeout")
         except Exception as e:
-            LOGGER.error(f"Unexpected error: {e}")
-
+            LOGGER.error(f"Publish failed: {e}")
         return False
 
     async def subscribe(self, timeout: float = None) -> dict[str, Any]:
@@ -378,7 +390,7 @@ class WorltyLocal:
                     except json.JSONDecodeError:
                         continue
 
-        except TimeoutError:
+        except asyncio.TimeoutError:
             return {"error": "timeout"}
         except ConnectionError:
             return {"error": "connection"}
@@ -440,8 +452,8 @@ class WorltyLocal:
                     await asyncio.sleep(RETRY_INTERVAL)
                     success = await self.reauth()
 
-    def is_entity_changed(self, pk, lct) -> dict:
-        """Get entity with pk and lct."""
+    def is_entity_changed(self, pk, lct) -> bool:
+        """Check if entity with pk and lct is changed."""
         for hpk, hlct in self._health_map.values():
             if hpk == pk and hlct != lct:
                 return True
