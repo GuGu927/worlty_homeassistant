@@ -4,7 +4,7 @@
   "codeowners": [
     "@GuGu927"
   ],
-  "version": "0.0.6",
+  "version": "0.0.8",
   "config_flow": true,
   "dependencies": [],
   "documentation": "https://www.home-assistant.io/integrations/worlty",
