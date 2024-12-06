@@ -3,7 +3,7 @@
 ## Space with You, Worlty
 
 ![HACS][hacs-shield]
-![Version v0.0.7][version-shield]
+![Version v0.0.8][version-shield]
 
 - [버전 기록정보](#version-history)
 - [안내사항](#안내사항)
@@ -19,6 +19,7 @@
 
 | 버전  |    날짜    | 내용                           |
 | :---: | :--------: | :----------------------------- |
+| 0.0.8 | 2024.12.07 | minor fix                      |
 | 0.0.7 | 2024.12.03 | minor fix                      |
 | 0.0.6 | 2024.11.17 | minor fix                      |
 | 0.0.5 | 2024.11.16 | minor fix                      |
@@ -113,5 +114,5 @@
 - 검색창에서 `Worlty` 혹은 `월티` 입력 후 선택<br>
 - IP에 추가할 `월티 장치의 IP주소`, 앱에서 설정한 `포트`, 앱에서 발급받은 `비밀번호(Access Token)`를 입력.
 
-[version-shield]: https://img.shields.io/badge/version-v0.0.7-orange.svg
+[version-shield]: https://img.shields.io/badge/version-v0.0.8-orange.svg
 [hacs-shield]: https://img.shields.io/badge/HACS-Custom-red.svg
