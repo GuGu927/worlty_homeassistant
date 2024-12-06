@@ -45,27 +45,32 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         """Retry auth."""
         auth = False
         auth_count = 0
-        while not auth and auth_count <= 10:
+        while not auth and auth_count <= 3:
             auth_count += 1
             auth, _ = await coordinator.api.auth(entry)
             if auth is False:
                 await asyncio.sleep(5)
             else:
                 await init_coordinator(coordinator, entry)
+        
 
     coordinator: WorltyDataCoordinator = WorltyDataCoordinator(hass, entry)
     await coordinator.connect()
 
     hass.data.setdefault(DOMAIN, {})[entry.entry_id] = {}
     hass.data[DOMAIN][entry.entry_id]["api"] = coordinator
+    hass.data[DOMAIN][entry.entry_id]["reauth"] = None
 
     if coordinator.api is not None:
         auth, _ = await coordinator.api.auth(entry)
+        if hass.data[DOMAIN][entry.entry_id]["reauth"] is not None:
+            hass.data[DOMAIN][entry.entry_id]["reauth"].cancel()
+            hass.data[DOMAIN][entry.entry_id]["reauth"] = None
 
         if auth is True:
             await init_coordinator(coordinator, entry)
-        else:
-            hass.loop.create_task(retry_auth(coordinator, entry))
+        elif hass.data[DOMAIN][entry.entry_id]["reauth"] is None:
+            hass.data[DOMAIN][entry.entry_id]["reauth"] = hass.loop.create_task(retry_auth(coordinator, entry))
 
         await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 

@@ -157,10 +157,8 @@ class WorltyLocal:
                     f"Connection failed ({retry_count}/{MAX_RETRIES} retries). Error: {e}"
                 )
                 self._connected = False
-                await asyncio.sleep(RETRY_INTERVAL) 
-
             except Exception as e:
-                LOGGER.critical(f"Unexpected error: {e}")
+                LOGGER.error(f"Unexpected error: {e}")
                 break
 
         LOGGER.warning(f"Failed to connect to {self._host}:{self._port} after {MAX_RETRIES} retries")
@@ -179,7 +177,9 @@ class WorltyLocal:
         
     async def is_connected(self) -> bool:
         """Check if the socket is connected."""
-        return not self._publish.is_closing()
+        if not self._publish or self._publish.is_closing():
+            return False
+        return True
 
     async def auth(self, entry: ConfigEntry = None):
         """Auth device."""
@@ -280,6 +280,7 @@ class WorltyLocal:
 
             if self.hass.data[DOMAIN][self._entry.entry_id].get("task") is not None:
                 self.hass.data[DOMAIN][self._entry.entry_id]["task"].cancel()
+                self.hass.data[DOMAIN][self._entry.entry_id]["task"] = None
 
             result = await self.get_worlty_devices()
 
@@ -365,6 +366,8 @@ class WorltyLocal:
             await asyncio.wait_for(self._publish.drain(), timeout=5)
             return True
         except asyncio.TimeoutError:
+            LOGGER.error(f"Publish failed: timeout")
+        except (ConnectionResetError, BrokenPipeError, asyncio.IncompleteReadError):
             LOGGER.error(f"Publish failed: timeout")
         except Exception as e:
             LOGGER.error(f"Publish failed: {e}")
