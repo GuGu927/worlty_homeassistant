@@ -498,6 +498,7 @@ class WorltyLocal:
             ]
 
             if len(pks) > 0:
+                await asyncio.sleep(0.5)
                 await self.publish({"type": "get", "data": {"devices": pks}})
         elif data_type == "device/list":
             # TODO 해당 데이터에 없는 entity 삭제
