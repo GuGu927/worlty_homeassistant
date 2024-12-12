@@ -457,9 +457,8 @@ class WorltyLocal:
 
     def is_entity_changed(self, pk, lct) -> bool:
         """Check if entity with pk and lct is changed."""
-        for hpk, hlct in self._health_map.values():
-            if hpk == pk and hlct != lct:
-                return True
+        if self._health_map.get(pk, 0) != lct:
+            return True
         return False
 
     async def handle_message(self, message: dict[str, Any]) -> None:
@@ -485,6 +484,7 @@ class WorltyLocal:
                     child["fk"] = device.get("pk", 0)
 
                 self.update_device(device)
+                self._health_map[str(device["pk"])] = device["lct"]
 
             if len(devices) > 0:
                 self.set_data("devices", self._entity_map.copy())
@@ -498,6 +498,7 @@ class WorltyLocal:
             ]
 
             if len(pks) > 0:
+                LOGGER.info(f"[{self.worlty_pad.device_id if self.worlty_pad is not None else self._host}] Update devices : {pks}")
                 await asyncio.sleep(0.5)
                 await self.publish({"type": "get", "data": {"devices": pks}})
         elif data_type == "device/list":
