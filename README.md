@@ -3,7 +3,7 @@
 ## Space with You, Worlty
 
 ![HACS][hacs-shield]
-![Version v0.0.9][version-shield]
+![Version v0.0.10][version-shield]
 
 - [버전 기록정보](#version-history)
 - [안내사항](#안내사항)
@@ -17,18 +17,19 @@
 
 ## 버전 기록정보
 
-| 버전  |    날짜    | 내용                           |
-| :---: | :--------: | :----------------------------- |
-| 0.0.9 | 2024.12.10 | minor fix                      |
-| 0.0.8 | 2024.12.07 | minor fix                      |
-| 0.0.7 | 2024.12.03 | minor fix                      |
-| 0.0.6 | 2024.11.17 | minor fix                      |
-| 0.0.5 | 2024.11.16 | minor fix                      |
-| 0.0.4 | 2024.10.29 | 난방 관련 child 추가           |
-| 0.0.3 | 2024.10.29 | minor fix                      |
-| 0.0.2 | 2024.10.23 | 난방 타이머제어 관련 내용 추가 |
-| 0.0.1 | 2024.10.14 | HA 업데이트 대응 및 child 추가 |
-| 0.0.0 | 2024.09.01 | 서비스 공개                    |
+|  버전  |    날짜    | 내용                           |
+| :----: | :--------: | :----------------------------- |
+| 0.0.10 | 2024.12.26 | remove max retry               |
+| 0.0.9  | 2024.12.10 | minor fix                      |
+| 0.0.8  | 2024.12.07 | minor fix                      |
+| 0.0.7  | 2024.12.03 | minor fix                      |
+| 0.0.6  | 2024.11.17 | minor fix                      |
+| 0.0.5  | 2024.11.16 | minor fix                      |
+| 0.0.4  | 2024.10.29 | 난방 관련 child 추가           |
+| 0.0.3  | 2024.10.29 | minor fix                      |
+| 0.0.2  | 2024.10.23 | 난방 타이머제어 관련 내용 추가 |
+| 0.0.1  | 2024.10.14 | HA 업데이트 대응 및 child 추가 |
+| 0.0.0  | 2024.09.01 | 서비스 공개                    |
 
 <br/>
 
@@ -115,5 +116,5 @@
 - 검색창에서 `Worlty` 혹은 `월티` 입력 후 선택<br>
 - IP에 추가할 `월티 장치의 IP주소`, 앱에서 설정한 `포트`, 앱에서 발급받은 `비밀번호(Access Token)`를 입력.
 
-[version-shield]: https://img.shields.io/badge/version-v0.0.9-orange.svg
+[version-shield]: https://img.shields.io/badge/version-v0.0.10-orange.svg
 [hacs-shield]: https://img.shields.io/badge/HACS-Custom-red.svg
