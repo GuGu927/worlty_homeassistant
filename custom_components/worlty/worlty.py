@@ -140,26 +140,26 @@ class WorltyLocal:
     async def _connect(self) -> bool:
         """Connnect device."""
         retry_count = 0
-        while retry_count < MAX_RETRIES:
-            try:
-                LOGGER.debug(
-                    f"[{self.worlty_pad.device_id if self.worlty_pad is not None else self._host}] Try connect to {self._host}:{self._port}"
-                )
-                self._subscribe, self._publish = await asyncio.open_connection(self._host, self._port)
-                self._connected = True
-                LOGGER.debug(
-                    f"[{self.worlty_pad.device_id if self.worlty_pad is not None else self._host}] Connected to {self._host}:{self._port}"
-                )
-                return True
-            except (OSError, asyncio.TimeoutError) as e:
-                retry_count += 1
-                LOGGER.error(
-                    f"Connection failed ({retry_count}/{MAX_RETRIES} retries). Error: {e}"
-                )
-                self._connected = False
-            except Exception as e:
-                LOGGER.error(f"Unexpected error: {e}")
-                break
+        # while retry_count < MAX_RETRIES:
+        try:
+            LOGGER.debug(
+                f"[{self.worlty_pad.device_id if self.worlty_pad is not None else self._host}] Try connect to {self._host}:{self._port}"
+            )
+            self._subscribe, self._publish = await asyncio.open_connection(self._host, self._port)
+            self._connected = True
+            LOGGER.debug(
+                f"[{self.worlty_pad.device_id if self.worlty_pad is not None else self._host}] Connected to {self._host}:{self._port}"
+            )
+            return True
+        except (OSError, asyncio.TimeoutError) as e:
+            retry_count += 1
+            LOGGER.error(
+                f"Connection failed ({retry_count}/{MAX_RETRIES} retries). Error: {e}"
+            )
+            self._connected = False
+        except Exception as e:
+            LOGGER.error(f"Unexpected error: {e}")
+            # break
 
         LOGGER.warning(f"Failed to connect to {self._host}:{self._port} after {MAX_RETRIES} retries")
         return False
