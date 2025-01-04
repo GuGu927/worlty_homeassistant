@@ -15,7 +15,7 @@ from homeassistant.components.date import DateEntityDescription
 from homeassistant.components.light import LightEntityDescription
 from homeassistant.components.sensor import SensorEntityDescription
 from homeassistant.components.switch import SwitchEntityDescription
-from homeassistant.components.water_heater import WaterHeaterEntityEntityDescription
+from homeassistant.components.water_heater import WaterHeaterEntityDescription
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant, callback
@@ -60,7 +60,7 @@ def map_worlty_entity_description(
         Platform.LIGHT: LightEntityDescription,
         Platform.SENSOR: SensorEntityDescription,
         Platform.SWITCH: SwitchEntityDescription,
-        Platform.WATER_HEATER: WaterHeaterEntityEntityDescription,
+        Platform.WATER_HEATER: WaterHeaterEntityDescription,
     }.get(platform_type)
 
     if entity_description_cls:
