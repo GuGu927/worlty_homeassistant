@@ -3,7 +3,7 @@
 ## Space with You, Worlty
 
 ![HACS][hacs-shield]
-![Version v0.0.10][version-shield]
+![Version v0.1.2][version-shield]
 
 - [버전 기록정보](#version-history)
 - [안내사항](#안내사항)
@@ -19,6 +19,7 @@
 
 |  버전  |    날짜    | 내용                           |
 | :----: | :--------: | :----------------------------- |
+| 0.1.2  | 2025.01.28 | 하위요소 번역 추가             |
 | 0.1.1  | 2025.01.04 | minor fix                      |
 | 0.0.10 | 2024.12.26 | remove max retry               |
 | 0.0.9  | 2024.12.10 | minor fix                      |

@@ -34,7 +34,7 @@ from .const import (
     map_worlty_to_platform,
 )
 
-RETRY_INTERVAL = 5  # 연결 실패 시 재시도 간격 (초)
+RETRY_INTERVAL = 20  # 연결 실패 시 재시도 간격 (초)
 MAX_RETRIES = 5     # 최대 재시도 횟수
 
 
@@ -159,6 +159,8 @@ class WorltyLocal:
             self._connected = False
         except Exception as e:
             LOGGER.error(f"Unexpected error: {e}")
+            retry_count += 1
+            self._connected = False
             # break
 
         LOGGER.warning(f"Failed to connect to {self._host}:{self._port} after {MAX_RETRIES} retries")
