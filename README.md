@@ -3,7 +3,6 @@
 ## Space with You, Worlty
 
 ![HACS][hacs-shield]
-![Version v0.1.2][version-shield]
 
 - [버전 기록정보](#version-history)
 - [안내사항](#안내사항)
