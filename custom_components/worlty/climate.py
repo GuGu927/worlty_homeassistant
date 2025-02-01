@@ -172,21 +172,21 @@ class WorltyClimate(WorltyBaseEntity, ClimateEntity):
 
         sm = self.worlty_attribute.get("sm", 0)
         for mode_bit, hvac_mode in HVAC_MODE_MAPPING.items():
-            if sm & (1 << mode_bit):
+            if sm & (1 << mode_bit) and hvac_mode not in self._hvac_modes:
                 self._hvac_modes.append(hvac_mode)
 
         for preset_bit, preset_mode in PRESET_MODE_MAPPING.items():
-            if sm & (1 << preset_bit):
+            if sm & (1 << preset_bit) and preset_mode not in self._preset_modes:
                 self._preset_modes.append(preset_mode)
 
         sf = self.worlty_attribute.get("sf", 0)
         for fan_bit, fan_mode in FAN_MODE_MAPPING.items():
-            if sf & (1 << fan_bit):
+            if sf & (1 << fan_bit) and fan_mode not in self._fan_modes:
                 self._fan_modes.append(fan_mode)
 
         ssw = self.worlty_attribute.get("ssw", 0)
         for swing_bit, swing_mode in SWING_MODE_MAPPING.items():
-            if ssw & (1 << swing_bit):
+            if ssw & (1 << swing_bit) and swing_mode not in self._swing_modes:
                 self._swing_modes.append(swing_mode)
 
         tt, tc = self.target_temperature, self.current_temperature
