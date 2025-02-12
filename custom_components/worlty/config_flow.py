@@ -6,9 +6,10 @@ from typing import Any
 
 import voluptuous as vol
 
-from homeassistant.components import onboarding, zeroconf
+from homeassistant.components import onboarding
 from homeassistant.config_entries import ConfigFlow, ConfigFlowResult
 from homeassistant.const import CONF_ACCESS_TOKEN, CONF_HOST, CONF_IP_ADDRESS, CONF_PORT
+from homeassistant.helpers.service_info.zeroconf import ZeroconfServiceInfo
 import homeassistant.helpers.config_validation as cv
 
 from .const import DOMAIN, LOGGER, MANUFACTURER
@@ -68,7 +69,7 @@ class WorltyFlowHandler(ConfigFlow, domain=DOMAIN):
         )
 
     async def async_step_zeroconf(
-        self, discovery_info: zeroconf.ZeroconfServiceInfo
+        self, discovery_info: ZeroconfServiceInfo
     ) -> ConfigFlowResult:
         """Handle zeroconf discovery."""
 
