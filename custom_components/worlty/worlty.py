@@ -423,7 +423,7 @@ class WorltyLocal:
         )
         try:
             while self._connected:
-                message: dict[str, Any] = await self.subscribe(0.5)
+                message: dict[str, Any] = await self.subscribe(1)
 
                 if message.get("data"):
                     self._health = datetime.datetime.now()
