@@ -203,8 +203,8 @@ class WorltyLocal:
             return False, "unreachable"
 
         if message.get("type") == "auth_required":
-            await asyncio.sleep(1)
-            await self.publish({"type": "auth", "access_token": self._access_token})
+            await asyncio.sleep(0.5)
+            await self.publish({"type": "auth", "access_token": self._access_token, "platform": "ha"})
 
         message = await self.subscribe(5)
         if message.get("error"):
@@ -364,15 +364,24 @@ class WorltyLocal:
                     LOGGER.error(f"Reconnect failed")
                     return False
 
+            LOGGER.debug(
+                f"[{self.worlty_pad.device_id if self.worlty_pad is not None else self._host}] Publish message > [{message}]"
+            )
             self._publish.write(message.encode())
             await asyncio.wait_for(self._publish.drain(), timeout=5)
             return True
         except asyncio.TimeoutError:
-            LOGGER.error(f"Publish failed: timeout")
+            LOGGER.error(
+                f"[{self.worlty_pad.device_id if self.worlty_pad is not None else self._host}] Publish failed > [timeout]"
+            )
         except (ConnectionResetError, BrokenPipeError, asyncio.IncompleteReadError):
-            LOGGER.error(f"Publish failed: timeout")
+            LOGGER.error(
+                f"[{self.worlty_pad.device_id if self.worlty_pad is not None else self._host}] Publish failed > [reset]"
+            )
         except Exception as e:
-            LOGGER.error(f"Publish failed: {e}")
+            LOGGER.error(
+                f"[{self.worlty_pad.device_id if self.worlty_pad is not None else self._host}] Publish failed > [{e}]"
+            )
         return False
 
     async def subscribe(self, timeout: float = None) -> dict[str, Any]:
@@ -382,7 +391,7 @@ class WorltyLocal:
             merge = True
             while merge:
                 chunk = await asyncio.wait_for(
-                    self._subscribe.read(1024 * 10), timeout=timeout
+                    self._subscribe.read(1024 * 15), timeout=timeout
                 )
                 if not chunk:
                     return {}
@@ -390,9 +399,19 @@ class WorltyLocal:
 
                 if buffer:
                     try:
-                        message = buffer.decode().strip()
-                        return json.loads(message)
+                        message = buffer.decode("utf-8", errors="replace").strip()
+                        if (len(message) > 0):
+                            LOGGER.debug(
+                                f"[{self.worlty_pad.device_id if self.worlty_pad is not None else self._host}] message decode > [{message}]"
+                            )
+                            return json.loads(message)
+                        continue
                     except json.JSONDecodeError:
+                        continue
+                    except Exception as e:
+                        LOGGER.error(
+                            f"[{self.worlty_pad.device_id if self.worlty_pad is not None else self._host}] decode failed > [{e}]"
+                        )
                         continue
 
         except asyncio.TimeoutError:
@@ -422,8 +441,13 @@ class WorltyLocal:
             f"[{self.worlty_pad.device_id if self.worlty_pad is not None else self._host}] Listen for Wolrty message"
         )
         try:
+            """Listen for Wolrty message."""
+            LOGGER.debug(
+                f"[{self.worlty_pad.device_id if self.worlty_pad is not None else self._host}] Subscribe message, connection[{self._connected}]"
+            )
+            await asyncio.sleep(1)
             while self._connected:
-                message: dict[str, Any] = await self.subscribe(1)
+                message: dict[str, Any] = await self.subscribe(3)
 
                 if message.get("data"):
                     self._health = datetime.datetime.now()
@@ -431,6 +455,9 @@ class WorltyLocal:
                 elif message.get("error"):
                     continue
                 else:
+                    LOGGER.debug(
+                        f"[{self.worlty_pad.device_id if self.worlty_pad is not None else self._host}] Subscribe message failed, [{message}]"
+                    )
                     break
         except asyncio.CancelledError:
             LOGGER.debug(
@@ -501,10 +528,11 @@ class WorltyLocal:
 
             if len(pks) > 0:
                 LOGGER.info(f"[{self.worlty_pad.device_id if self.worlty_pad is not None else self._host}] Update devices : {pks}")
-                await asyncio.sleep(0.5)
+                await asyncio.sleep(1)
                 await self.publish({"type": "get", "data": {"devices": pks}})
         elif data_type == "device/list":
             # TODO 해당 데이터에 없는 entity 삭제
+            await asyncio.sleep(1)
             await self.publish({"type": "get", "data": {"devices": devices}})
         elif data_type == "device/delete":
             # TODO 해당 데이터에 있는 entity 삭제
