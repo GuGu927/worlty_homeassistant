@@ -18,6 +18,7 @@
 
 |  버전  |    날짜    | 내용                                               |
 | :----: | :--------: | :------------------------------------------------- |
+| 0.1.6  | 2025.03.17 | 센서 값 '-' 대응                                   |
 | 0.1.5  | 2025.03.05 | Add platform name when auth and fix decode error   |
 | 0.1.4  | 2025.02.12 | Relocate dhcp/ssdp/usb/zeroconf ServiceInfo models |
 | 0.1.3  | 2025.02.01 | climate 중복 모드 제거                             |

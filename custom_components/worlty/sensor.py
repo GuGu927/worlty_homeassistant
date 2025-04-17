@@ -69,6 +69,9 @@ class WorltySensor(WorltyBaseEntity, SensorEntity):
             return value
         except (ValueError, TypeError):
             pass
+        
+        if self.worlty_state == "-":
+            return 0
 
         return self.worlty_state
 
