@@ -1,6 +1,5 @@
 """Worlty light."""
 
-import math
 from typing import Any
 
 from homeassistant.components.light import ATTR_BRIGHTNESS, ColorMode, LightEntity
@@ -9,7 +8,6 @@ from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util.color import value_to_brightness
-from homeassistant.util.percentage import percentage_to_ranged_value
 
 from .const import DOMAIN
 from .coordinator import WorltyDataCoordinator
@@ -72,8 +70,6 @@ class WorltyLight(WorltyBaseEntity, LightEntity):
             bri = value_to_brightness((1, self.wt_level_max), level)
         if bri is not None and bri > 0:
             self.wt_last_bri = bri
-        if bri is not None:
-            self._color_mode = ColorMode.BRIGHTNESS
         return bri
 
     @property
@@ -84,21 +80,26 @@ class WorltyLight(WorltyBaseEntity, LightEntity):
     @property
     def supported_color_modes(self) -> set[ColorMode]:
         """Return the list of supported color mode."""
-        modes = [ColorMode.ONOFF]
+        modes = {ColorMode.ONOFF}
         sc = self.worlty_attribute.get("sc", 0)
+        if (sc & (1 << 1)) != 0:
+            modes = {ColorMode.BRIGHTNESS}
+            self._color_mode = ColorMode.BRIGHTNESS
         if (sc & (1 << 2)) != 0:
-            modes.append(ColorMode.BRIGHTNESS)
+            modes = {ColorMode.BRIGHTNESS}
+            self._color_mode = ColorMode.BRIGHTNESS
         return modes
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the entity on."""
         if self.wt_level_max > 1:
-            value_in_range = math.ceil(
-                percentage_to_ranged_value(
-                    (1, self.wt_level_max), kwargs[ATTR_BRIGHTNESS]
-                )
-            )
-            await self.set_device(stt=True, bri=value_in_range)
+            sc = self.worlty_attribute.get("sc", 0)
+            if (sc & (1 << 1)) != 0:
+                scaled = (kwargs.get(ATTR_BRIGHTNESS, self.wt_last_bri) - 1) / 254
+                mapped_value = 1 + scaled * (self.wt_level_max - 1)
+                await self.set_device(stt=True, lv=round(mapped_value))
+            if (sc & (1 << 2)) != 0:
+                await self.set_device(stt=True, bri=kwargs.get(ATTR_BRIGHTNESS, self.wt_last_bri))
         else:
             await self.set_device(stt=True)
 
