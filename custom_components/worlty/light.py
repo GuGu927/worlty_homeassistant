@@ -8,6 +8,8 @@ from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.util.color import value_to_brightness
+from homeassistant.util.percentage import percentage_to_ordered_list_item
+import math
 
 from .const import DOMAIN
 from .coordinator import WorltyDataCoordinator
@@ -49,6 +51,7 @@ class WorltyLight(WorltyBaseEntity, LightEntity):
         self._color_mode: ColorMode = ColorMode.ONOFF
         self.wt_last_bri: int = 0
         self.wt_level_max: int = 0
+        self.dim_level = []
 
     @callback
     def _update_entity(self) -> None:
@@ -65,8 +68,11 @@ class WorltyLight(WorltyBaseEntity, LightEntity):
         bri = self.worlty_attribute.get("bri")
 
         self.wt_level_max = self.worlty_attribute.get("lvm")
+        if len(self.dim_level) != self.wt_level_max:
+            self.dim_level = [i for i in range(1, self.wt_level_max + 1)]
+
         level = self.worlty_attribute.get("lv", 0)
-        if level > 0 and self.wt_level_max >= level:
+        if self.wt_level_max >= level:
             bri = value_to_brightness((1, self.wt_level_max), level)
         if bri is not None and bri > 0:
             self.wt_last_bri = bri
@@ -95,9 +101,9 @@ class WorltyLight(WorltyBaseEntity, LightEntity):
         if self.wt_level_max > 1:
             sc = self.worlty_attribute.get("sc", 0)
             if (sc & (1 << 1)) != 0:
-                scaled = (kwargs.get(ATTR_BRIGHTNESS, self.wt_last_bri) - 1) / 254
-                mapped_value = 1 + scaled * (self.wt_level_max - 1)
-                await self.set_device(stt=True, lv=round(mapped_value))
+                state = kwargs.get(ATTR_BRIGHTNESS, self.wt_last_bri)
+                state_pct = round(state / 255 * 100)
+                await self.set_device(stt=True, lv=percentage_to_ordered_list_item(self.dim_level, state_pct))
             if (sc & (1 << 2)) != 0:
                 await self.set_device(stt=True, bri=kwargs.get(ATTR_BRIGHTNESS, self.wt_last_bri))
         else:
