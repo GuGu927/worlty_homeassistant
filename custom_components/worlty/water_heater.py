@@ -120,6 +120,11 @@ class WorltyWaterHeater(WorltyBaseEntity, WaterHeaterEntity):
         return 10
 
     @property
+    def target_temperature_step(self) -> float | None:
+        """Step temperature."""
+        return self.worlty_attribute.get("ts")
+
+    @property
     def target_temperature(self) -> float | None:
         """Target temperature."""
         return self.worlty_attribute.get("tt")
