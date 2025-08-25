@@ -39,12 +39,6 @@ BACKOFF_BASE = 1.0   # 초
 BACKOFF_CAP  = 30.0  # 초
 
 
-def _compute_backoff(self, attempt: int) -> float:
-    """Backoff delay."""
-    expo = min(BACKOFF_CAP, BACKOFF_BASE * (2 ** attempt))
-    return random.uniform(0, expo)
-
-
 
 def map_worlty_entity_description(
     worlty_type: int, worlty_class: int, worlty_sub: str
@@ -143,6 +137,11 @@ class WorltyLocal:
         instance = cls(hass, host, port, access_token, async_event_handler)
 
         return instance
+
+    def _compute_backoff(self, attempt: int) -> float:
+        """Backoff delay."""
+        expo = min(BACKOFF_CAP, BACKOFF_BASE * (2 ** attempt))
+        return random.uniform(0, expo)
 
     async def _connect(self) -> bool:
         """Connnect device."""
