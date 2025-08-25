@@ -4,6 +4,7 @@ import asyncio
 from collections import defaultdict
 import datetime
 import json
+import random
 from typing import Any, Optional
 
 from homeassistant.components.binary_sensor import BinarySensorEntityDescription
@@ -34,8 +35,14 @@ from .const import (
     map_worlty_to_platform,
 )
 
-RETRY_INTERVAL = 20  # 연결 실패 시 재시도 간격 (초)
-MAX_RETRIES = 5     # 최대 재시도 횟수
+BACKOFF_BASE = 1.0   # 초
+BACKOFF_CAP  = 30.0  # 초
+
+
+def _compute_backoff(self, attempt: int) -> float:
+    """Backoff delay."""
+    expo = min(BACKOFF_CAP, BACKOFF_BASE * (2 ** attempt))
+    return random.uniform(0, expo)
 
 
 
@@ -139,49 +146,63 @@ class WorltyLocal:
 
     async def _connect(self) -> bool:
         """Connnect device."""
-        retry_count = 0
-        # while retry_count < MAX_RETRIES:
-        try:
-            LOGGER.debug(
-                f"[{self.worlty_pad.device_id if self.worlty_pad is not None else self._host}] Try connect to {self._host}:{self._port}"
-            )
-            self._subscribe, self._publish = await asyncio.open_connection(self._host, self._port)
-            self._connected = True
-            LOGGER.debug(
-                f"[{self.worlty_pad.device_id if self.worlty_pad is not None else self._host}] Connected to {self._host}:{self._port}"
-            )
-            return True
-        except (OSError, asyncio.TimeoutError) as e:
-            retry_count += 1
-            LOGGER.error(
-                f"Connection failed ({retry_count}/{MAX_RETRIES} retries). Error: {e}"
-            )
-            self._connected = False
-        except Exception as e:
-            LOGGER.error(f"Unexpected error: {e}")
-            retry_count += 1
-            self._connected = False
-            # break
+        
+        attempt = 0
+        while not self._disconnect:
+            try:
+                LOGGER.debug(
+                    "[%s] Try connect to %s:%s",
+                    self.worlty_pad.device_id if self.worlty_pad is not None else self._host,
+                    self._host, self._port,
+                )
+                self._subscribe, self._publish = await asyncio.open_connection(self._host, self._port)
+                self._connected = True
+                LOGGER.debug(
+                    "[%s] Connected to %s:%s",
+                    self.worlty_pad.device_id if self.worlty_pad is not None else self._host,
+                    self._host, self._port,
+                )
+                return True
+            except (OSError, asyncio.TimeoutError) as e:
+                self._connected = False
+                delay = self._compute_backoff(attempt)
+                LOGGER.error("Connection failed (attempt=%d). Error: %s. retry in %.2fs", attempt+1, e, delay)
+            except Exception as e:
+                self._connected = False
+                delay = self._compute_backoff(attempt)
+                LOGGER.error("Unexpected error: %s. retry in %.2fs", e, delay)
 
-        LOGGER.warning(f"Failed to connect to {self._host}:{self._port} after {MAX_RETRIES} retries")
+            attempt += 1
+            await asyncio.sleep(delay)
+
+        LOGGER.warning("Connect aborted by _disconnect")
         return False
 
-    def terminate(self):
-        """Terminate connection."""
-        if self._publish is not None:
-            if self.worlty_pad is not None:
-                self.worlty_pad.device_available = False
-            self._publish.close()
+    def terminate(self) -> None:
+        """Terminate stream."""
+        self._connected = False
+        if self.worlty_pad is not None:
+            self.worlty_pad.device_available = False
+        if self._publish:
+            try:
+                self._publish.close()
+            except Exception:
+                pass
+            finally:
+                self._publish = None
+        self._subscribe = None
 
     async def disconnect(self):
         """Disconnect device."""
         self._disconnect = True
         
     async def is_connected(self) -> bool:
-        """Check if the socket is connected."""
+        """Check stream state."""
         if not self._publish or self._publish.is_closing():
             return False
-        return True
+        if not self._subscribe or self._subscribe.at_eof():
+            return False
+        return self._connected
 
     async def auth(self, entry: ConfigEntry = None):
         """Auth device."""
@@ -267,45 +288,48 @@ class WorltyLocal:
 
     async def reauth(self) -> bool:
         """Retry auth."""
-        if self._connected is False and self._disconnect is False:
+        if self._disconnect:
+            return False
+
+        if self._connected is False:
+            attempt = 0
             auth, _ = await self.auth(self._entry)
-            while not auth:
-                if self._connected is True:
+            while not auth and not self._disconnect:
+                if self._connected:
                     self._connected = False
                     self.terminate()
 
-                await asyncio.sleep(RETRY_INTERVAL)
+                delay = self._compute_backoff(attempt)
+                await asyncio.sleep(delay)
                 auth, _ = await self.auth(self._entry)
+                attempt += 1
+
+            if not auth:
+                return False
 
             if self.worlty_pad is not None:
                 self.worlty_pad.device_available = auth
 
-            if self.hass.data[DOMAIN][self._entry.entry_id].get("task") is not None:
-                self.hass.data[DOMAIN][self._entry.entry_id]["task"].cancel()
+            task = self.hass.data[DOMAIN][self._entry.entry_id].get("task")
+            if task:
+                task.cancel()
                 self.hass.data[DOMAIN][self._entry.entry_id]["task"] = None
 
             result = await self.get_worlty_devices()
-
             if result is None:
                 self._connected = False
                 self.terminate()
                 return False
-            
-            self.hass.data[DOMAIN][self._entry.entry_id]["task"] = (
-                self.hass.loop.create_task(self.listen_for_message())
-            )
+
+            self.hass.data[DOMAIN][self._entry.entry_id]["task"] = self.hass.async_create_task(self.listen_for_message())
 
             self._health = datetime.datetime.now()
-            if self.hass.data[DOMAIN][self._entry.entry_id].get("health") is not None:
-                self.hass.data[DOMAIN][self._entry.entry_id]["health"].cancel()
+            if (h := self.hass.data[DOMAIN][self._entry.entry_id].get("health")):
+                h.cancel()
+            self.hass.data[DOMAIN][self._entry.entry_id]["health"] = self.hass.async_create_task(self.health_check())
 
-            self.hass.data[DOMAIN][self._entry.entry_id]["health"] = (
-                self.hass.loop.create_task(self.health_check())
-            )
-
-            await asyncio.sleep(RETRY_INTERVAL)
             self._reconnect = True
-            return True
+        return True
 
     def set_data(self, name: str, value: Any) -> Any:
         """Set entry data."""
@@ -339,10 +363,10 @@ class WorltyLocal:
         return self._entry.data.get(name, default_value)
 
     async def reconnect(self) -> bool:
-        """Attempt to reconnect the socket."""
+        """Recoonect."""
+        self.terminate()
         try:
-            await self._connect()
-            return True
+            return await self._connect()
         except Exception:
             return False
 
@@ -387,53 +411,46 @@ class WorltyLocal:
     async def subscribe(self, timeout: float = None) -> dict[str, Any]:
         """Subscribe message."""
         try:
-            buffer = b""
-            merge = True
-            while merge:
-                chunk = await asyncio.wait_for(
-                    self._subscribe.read(1024 * 15), timeout=timeout
-                )
-                if not chunk:
-                    return {}
-                buffer += chunk
+            line = await asyncio.wait_for(self._subscribe.readline(), timeout=timeout)
+            if not line: 
+                self._connected = False
+                return {"error": "connection_lost"}
 
-                if buffer:
-                    try:
-                        message = buffer.decode("utf-8", errors="replace").strip()
-                        if (len(message) > 0):
-                            LOGGER.debug(
-                                f"[{self.worlty_pad.device_id if self.worlty_pad is not None else self._host}] message decode > [{message}]"
-                            )
-                            return json.loads(message)
-                        continue
-                    except json.JSONDecodeError:
-                        continue
-                    except Exception as e:
-                        LOGGER.error(
-                            f"[{self.worlty_pad.device_id if self.worlty_pad is not None else self._host}] decode failed > [{e}]"
-                        )
-                        continue
+            msg = line.decode("utf-8", errors="replace").strip()
+            if not msg:
+                return {}
+            LOGGER.debug("[%s] message decode > [%s]",
+                        self.worlty_pad.device_id if self.worlty_pad else self._host, msg)
+            return json.loads(msg)
 
         except asyncio.TimeoutError:
             return {"error": "timeout"}
-        except ConnectionError:
-            return {"error": "connection"}
-        return {}
+        except (ConnectionResetError, BrokenPipeError, asyncio.IncompleteReadError):
+            self._connected = False
+            return {"error": "connection_lost"}
+        except Exception as e:
+            LOGGER.error("[%s] Subscribe failed > [%s]",
+                        self.worlty_pad.device_id if self.worlty_pad else self._host, e)
+            self._connected = False
+            return {"error": "connection_lost"}
 
     async def health_check(self):
         """Health check."""
-        while datetime.datetime.now() - self._health < datetime.timedelta(seconds=120):
+        while not self._disconnect:
             await asyncio.sleep(1)
-
-            if datetime.datetime.now() - self._health >= datetime.timedelta(
-                seconds=240
-            ):
+            elapsed = datetime.datetime.now() - self._health
+            if elapsed >= datetime.timedelta(seconds=90):
                 LOGGER.debug(
-                    f"[{self.worlty_pad.device_id if self.worlty_pad is not None else self._host}] Health elapsed 240 seconds"
+                    f"[{self.worlty_pad.device_id if self.worlty_pad else self._host}] Health elapsed 90 seconds"
                 )
-        if self.hass.data[DOMAIN][self._entry.entry_id].get("task") is not None:
-            self.hass.data[DOMAIN][self._entry.entry_id]["task"].cancel()
+                break
+
+        task = self.hass.data[DOMAIN][self._entry.entry_id].get("task")
+        if task:
+            task.cancel()
         self.terminate()
+        if not self._disconnect:
+            await self.reauth()
 
     async def listen_for_message(self):
         """Listen for Wolrty message."""
@@ -447,17 +464,21 @@ class WorltyLocal:
             )
             await asyncio.sleep(1)
             while self._connected:
-                message: dict[str, Any] = await self.subscribe(3)
+                message = await self.subscribe(3)
 
-                if message.get("data"):
+                if message.get("error") == "connection_lost":
+                    LOGGER.warning("[%s] Socket closed. Reconnecting...",
+                                self.worlty_pad.device_id if self.worlty_pad else self._host)
+                    self._connected = False
+                    break
+                elif message.get("data"):
                     self._health = datetime.datetime.now()
                     self.hass.loop.create_task(self.handle_message(message))
-                elif message.get("error"):
+                elif message.get("error") == "timeout":
                     continue
                 else:
-                    LOGGER.debug(
-                        f"[{self.worlty_pad.device_id if self.worlty_pad is not None else self._host}] Subscribe message failed, [{message}]"
-                    )
+                    LOGGER.debug("[%s] Invalid message %s",
+                                self.worlty_pad.device_id if self.worlty_pad else self._host, message)
                     break
         except asyncio.CancelledError:
             LOGGER.debug(
@@ -474,15 +495,19 @@ class WorltyLocal:
             self.terminate()
 
             await asyncio.sleep(1)
-
+            
             if self._disconnect is False:
                 LOGGER.debug(
-                    f"[{self.worlty_pad.device_id if self.worlty_pad is not None else self._host}] Try auth as listener finished"
+                    "[%s] Try auth as listener finished",
+                    self.worlty_pad.device_id if self.worlty_pad is not None else self._host,
                 )
+                attempt = 0
                 success = await self.reauth()
-                while not success:
-                    await asyncio.sleep(RETRY_INTERVAL)
+                while not success and not self._disconnect:
+                    delay = self._compute_backoff(attempt)
+                    await asyncio.sleep(delay)
                     success = await self.reauth()
+                    attempt += 1
 
     def is_entity_changed(self, pk, lct) -> bool:
         """Check if entity with pk and lct is changed."""
